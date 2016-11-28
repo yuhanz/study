@@ -1,0 +1,46 @@
+{
+    "serviceName" : "cross-shop-redis-consumer",
+    "active" : true,
+    "description" : "To send notifications about failed messages",
+    "businessContacts" : [
+        {
+            "name" : "Suresh Narasimhan",
+            "company" : "Edmunds.com",
+            "email" : "snarasimhan@edmunds.com",
+            "deskPhone" : "",
+            "alertOnViolation" : true,
+            "alertMethod" : "EMAIL"
+        }],
+    "technicalContacts" : [
+        {
+            "name" : "Suresh Narasimhan",
+            "company" : "Edmunds.com",
+            "email" : "snarasimhan@edmunds.com",
+            "deskPhone" : "",
+            "alertOnViolation" : true,
+            "alertMethod" : "EMAIL"
+        }],
+    "documentationLinks" : [
+    ],
+    "businessService" : "Common Monitoring Service",
+    "incidentWatchList" : [
+        "incident@edmunds.com"
+    ],
+    "policies" : [
+        {
+            "name" : "critical-failed",
+            "severity" : 1,
+            "urgency" : 1,
+            "additionalWatchers" : [
+            ],
+            "recoverySteps" : [
+                "Restart consumer application."
+            ]
+        }],
+    "maintenanceWindows" : [
+    ],
+    "notes" : [
+        "This SLA is bundled with other SLA's for the primary application.",
+        "This SLA is just for the monitoring sub-system"
+    ]
+}

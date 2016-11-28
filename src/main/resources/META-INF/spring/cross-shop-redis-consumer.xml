@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans.xsd
+           http://www.springframework.org/schema/context
+           http://www.springframework.org/schema/context/spring-context.xsd
+           http://www.springframework.org/schema/aop
+           http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+    <aop:aspectj-autoproxy/>
+    <import resource="classpath:registration.xml"/>
+    <import resource="classpath:META-INF/spring/camel-server.xml"/>
+    <import resource="classpath*:spring-monitoring-configuration.xml"/>
+
+    <context:component-scan base-package="com.edmunds.common"/>
+    <context:component-scan base-package="com.edmunds.eps.endpoint"/>
+    <context:component-scan base-package="com.edmunds.crossshop"/>
+    <context:component-scan base-package="com.edmunds.common.logging.aspect"/>
+
+    <context:property-override location="mbeanExporter.properties"/>
+
+    <bean id="propertyConfigurer"
+          class="org.springframework.beans.factory.config.PropertyOverrideConfigurer">
+        <property name="location"
+                  value="file:///deployments/edmunds/properties/common/cross-shop-redis-consumer.properties"/>
+        <property name="ignoreResourceNotFound" value="true"/>
+    </bean>
+
+    <bean id="receiverImpl" class="com.edmunds.eps.endpoint.impl.ReceiverImpl">
+        <property name="service" value="cross-shop"/>
+        <property name="messageType" value="Publish"/>
+        <property name="application" value="cross-shop-redis"/>
+    </bean>
+
+    <bean id="jmsConfig" class="org.apache.camel.component.jms.JmsConfiguration">
+        <property name="connectionFactory" ref="jmsConnectionFactory"/>
+        <property name="transacted" value="false"/>
+        <property name="concurrentConsumers" value="10"/>
+    </bean>
+
+    <bean id="jmsConnectionFactory" class="org.jencks.amqpool.PooledConnectionFactory">
+        <constructor-arg>
+            <bean factory-bean="jmsBrokerUrl" factory-method="getProperty"/>
+        </constructor-arg>
+        <property name="maxConnections" value="10"/>
+    </bean>
+
+    <bean id="annotationJmxAttributeSource"
+          class="org.springframework.jmx.export.annotation.AnnotationJmxAttributeSource"/>
+
+    <bean id="monitoringConfiguration" class="com.edmunds.monitoring.api.configuration.MonitorConfiguration">
+        <property name="monitoredArtifact">
+            <bean class="com.edmunds.monitoring.api.maven.MavenArtifact">
+                <property name="artifactId" value="${project.artifactId}"/>
+                <property name="groupId" value="${project.groupId}"/>
+                <property name="version" value="${project.version}"/>
+            </bean>
+        </property>
+    </bean>
+
+</beans>

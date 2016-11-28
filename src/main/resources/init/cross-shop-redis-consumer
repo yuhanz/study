@@ -1,0 +1,71 @@
+#! /bin/sh
+#
+# chkconfig:	2345 99 5
+# description:	cross-shop-redis-consumer
+# processname:	java
+
+STARTSCRIPT="/deployments/eps/${project.artifactId}/start-consumer.sh"
+
+NodeId=$(expr substr "`hostname -s`-${project.artifactId}" 1 32)
+
+user=`whoami`
+
+case $1 in 
+stop) 
+#      echo "Checking crosshop node exists..."
+      check=`ps -FC java | grep nodeId=${NodeId} | awk '{print $2}'`
+      if [ "x${check}" = "x" ] ; then
+	  echo "'${NodeId}' is not running"
+	  exit
+      else
+	  echo "Killing pid: ${check}" 
+	  kill -9 ${check}
+      fi 
+      ;;
+
+start)
+#	echo "Checking if ${STARTSCRIPT} exists..." 
+	if test -f ${STARTSCRIPT}
+	then
+		echo "Starting ${NodeId}..."
+                if [ "x${user}" = "xwebapps" ] ; then
+                        NODE_ID=${NodeId} ${STARTSCRIPT}
+                else    
+                        su - webapps -c "NODE_ID=${NodeId} ${STARTSCRIPT}"
+                fi
+		echo 
+	fi
+	;;
+restart) 
+	check=`ps -FC java | grep nodeId=${NodeId} | awk '{print $2}'`
+	if [ "x${check}" = "x" ] ; then
+	    echo "'${NodeId}' is not running"
+	else
+	    echo "Killing pid: ${check}" 
+	    kill -9 ${check}
+	    sleep 5
+	fi 
+	if test -f ${STARTSCRIPT}
+	then
+	    echo "Starting ${NodeId}..."
+            if [ "x${user}" = "xwebapps" ] ; then
+                NODE_ID=${NodeId} ${STARTSCRIPT}
+            else    
+                su - webapps -c "NODE_ID=${NodeId} ${STARTSCRIPT}"
+            fi
+	    echo 
+	    sleep 20
+	fi
+	;;
+status) 
+      check=`ps -FC java | grep nodeId=${NodeId} | awk '{print $2}'`
+      if [ "x${check}" = "x" ] ; then
+            echo "${NodeId} : shutdown" 
+      else 
+  echo "${NodeId} : running"
+      fi
+      ;;
+*)
+	echo "Usage: $0 {start|stop|restart|status}"
+	 ;;
+esac

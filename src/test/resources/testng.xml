@@ -1,0 +1,8 @@
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
+<suite name="cross-shop-redis-consumer" annotations="JDK">
+    <test name="unit-tests" verbose="1" annotations="JDK">
+        <packages>
+            <package name="com.edmunds.crossshop.repository"/>
+        </packages>
+    </test>
+</suite>
