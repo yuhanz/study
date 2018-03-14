@@ -4,17 +4,17 @@ var fs = require('fs');
 const util = require('./util.js');
 
 
-var contents = fs.readFileSync('./data/makes.txt', 'utf8');
-var makes = contents.toLowerCase().split(',');
-// makes = ["toyota"];
+// var contents = fs.readFileSync('./data/makes.txt', 'utf8');
+// var makes = contents.toLowerCase().split(',');
+makes = ["toyota", "honda"];
 
-contents = fs.readFileSync('./data/make-models.txt', 'utf8');
+contents = fs.readFileSync('./data/toyota-honda-models.txt', 'utf8');
 contents = contents.toLowerCase();
 
 const dictionary = util.createSlugDictionary();
 console.log("dictionary: ", dictionary)
 
-const OUTPUT_DIMENSION = 1;
+const OUTPUT_DIMENSION = 2;
 const INPUT_DIMENSION = Object.keys(dictionary).length;
 const HIDDEN_SIZE = 20;
 
@@ -27,13 +27,22 @@ var Neuron = synaptic.Neuron,
 // 26 characters + 10 digits +
 var LSTM = new Architect.LSTM(INPUT_DIMENSION, HIDDEN_SIZE, OUTPUT_DIMENSION);
 
-var contentsTruth = R.map(c => c == '_' ? 1 : 0)(util.replaceKeyWordsWithSymbol(contents, makes, '_'))
+
+
+function contentToTruth(contents) {
+	var contentsTruth = R.map(c => c == '_' ? 1 : 0)(util.replaceKeyWordsWithSymbol(contents, makes, '_'))
+	return R.map(pair => pair[0] && !pair[1] ? 3 : pair[0])(R.zip(contentsTruth, Object.assign([], contentsTruth).splice(1)))
+}
+
+contentsTruth = contentToTruth(contents);
+
+console.log("contentsTruth: ", R.zip(contents, contentsTruth));
 
 // console.log(util.displayResultsInCap(contents, contentsTruth))
 
 console.log("Training...")
 
-const TRANING_ROUNDS = 70;
+const TRANING_ROUNDS = 35;
 
 const MIN_LEARNING_RATE = 0.001;
 var learningRate = 0.5;
@@ -67,7 +76,7 @@ R.times(R.identity, TRANING_ROUNDS).forEach(()=> {
 		const expectedOutput = pair[1];
 
 		const input = util.charToVector(char, dictionary);
-		const expectedOutputVector = util.intToVector(expectedOutput, OUTPUT_DIMENSION)
+		const expectedOutputVector = util.intBitsToVector(expectedOutput, OUTPUT_DIMENSION)
 
 		var output = LSTM.activate(input)
 		LSTM.propagate(learningRate, expectedOutputVector)
@@ -101,10 +110,21 @@ function classifyText(contents) {
 //
 // contents = contents.substring(0,1000)
 
-contents = "do you believe that toyota is totally affordable. hoda accord is the most common model in america market.";
+contents = "do you believe that toyota is totally affordable. honda accord is common in the market";
+truth = contentToTruth(contents);
+
+
 var results = classifyText(contents)
-console.log("results: ", results);
-console.log( output = util.displayResultsInCap(contents, results, 0.5));
+console.log("results: ", R.zip(contents, results));
+
+threshold = Math.min.apply(Math, R.compose(R.map(pair=> pair[1][0]), R.filter(pair => pair[0] == 1 )) (R.zip(truth,results)));
+threshold2 = Math.min.apply(Math, R.compose(R.map(pair=> pair[1][1]), R.filter(pair => pair[0] == 3 )) (R.zip(truth, results)));
+
+console.log("threshold: ", threshold)
+console.log("threshold2: ", threshold2)
+
+
+console.log( output = util.displayResultsInCap(contents, results, threshold, threshold2));
 
 
 

@@ -34,7 +34,13 @@ function charToVector(ch, dictionary) {
 function intToVector(value, dimension) {
     console.assert(value >= 0 && value <= dimension, "valid values are between: 0 and ", dimension, " inclusively")
     var index = value - 1;
-    return vector = [...new Array(dimension)].map((x,i)=> i == index ? 1 : 0);
+    return [...new Array(dimension)].map((x,i)=> i == index ? 1 : 0);
+}
+
+// when dimention = 2: 0 => [0,0], 1 => [1,0], 2 => [0, 1], 3 => [1,1]
+// when dimention = 3: 0 => [0,0,0], 1 => [1,0,0], 2 => [0,1,0], 3 => [1,1,0]
+function intBitsToVector(value, dimension) {
+  return [...new Array(dimension)].map((x,i)=> i+1 & value ? 1 : 0);
 }
 
 
@@ -44,16 +50,18 @@ function distance(v1, v2) {
   )) (R.zip(v1, v2));
 }
 
-function displayResultsInCap(contents, results, threshold = 0.5) {
+function displayResultsInCap(contents, results, threshold = 0.5, threshold2 = 0.07) {
   var output = "";
   var prev = 0;
   var upperCase = false;
   R.forEach(pair => {
   	var ch = pair[0];
-  	const b = pair[1] > threshold;
-  	if(b) {
+  	if(pair[1][0] >= threshold) {
   		ch = ch.toUpperCase();
   	}
+    if(pair[1][1] >= threshold2) {
+      ch += "*";
+    }
   	output += ch;
   })(R.zip(contents, results))
 
@@ -65,6 +73,7 @@ module.exports = {
   createSlugDictionary,
   charToVector,
   intToVector,
+  intBitsToVector,
   distance,
   displayResultsInCap
 }
