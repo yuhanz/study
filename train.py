@@ -21,7 +21,7 @@ n_output = 2
 OBSERVATION_INDEX = 0
 TARGET_REWARD_INDEX = 2
 
-[input, output, loss, train] = net_builder.build_net(n_input, n_output)
+[input, output, target, loss, train] = net_builder.build_net(n_input, n_output)
 
 
 sess = tf.Session()
@@ -38,8 +38,7 @@ for i in range(1,10):
   print '== evaluated_rewards:', evaluated_rewards
   observation_next, reward, done, info = env.step(action)
   max_future_reward = net_operation.eval_and_max(sess, output, input, [observation_next])
-  target_rewards = reinforcement.to_target_reward(action, reward, max_future_reward, evaluated_rewards)
+  target_rewards = reinforcement.to_target_reward(action, reward, max_future_reward, evaluated_rewards[0])
   records.append([observation, target_rewards])
 
-for record in records:
-  reinforcement.learn(sess, records, loss, train)
+reinforcement.learn(sess, records, loss, train, input, target)

@@ -15,7 +15,7 @@ def build_net(input_size, output_size, learning_rate = 0.01):
     loss = build_loss(output, target)
   with tf.variable_scope('train'):
     train = build_train(loss, learning_rate)
-  return [input, output, loss, train]
+  return [input, output, target, loss, train]
 
 def build_loss(output_layer, target):
   return tf.reduce_mean(tf.squared_difference(output_layer, target))

@@ -19,12 +19,12 @@ def choose_action(env, observation, sess, input, output, epsilon = 0.9):
 
 def to_target_reward(action, reward, max_future_reward, evaluated_reward, gamma = 0.9):
   target = evaluated_reward
-  target[0][action] = reward + max_future_reward * gamma
+  target[action] = reward + max_future_reward * gamma
   return target
 
-def learn(sess, records, loss, train):
+def learn(sess, records, loss, train, inputPlaceHolder, targetPlaceHolder):
   inputs = map(lambda r : r[OBSERVATION_INDEX],records)
   targets = map(lambda r : r[TARGET_REWARD_INDEX],records)
-  sess.run(train, feed_dict={'input.eval': inputs, 'loss.output': targets})
-  loss_value = sess.run(loss, feed_dict={'input.eval': inputs, 'loss.output': targets})
+  sess.run(train, feed_dict={inputPlaceHolder: inputs, targetPlaceHolder: targets})
+  loss_value = sess.run(loss, feed_dict={inputPlaceHolder: inputs, targetPlaceHolder: targets})
   print "loss: " + str(loss_value)
