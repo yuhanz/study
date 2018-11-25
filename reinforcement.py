@@ -8,6 +8,10 @@ OBSERVATION_INDEX = 0
 TARGET_REWARD_INDEX = 1
 
 
+def greedy_choose_action(env, observation, sess, input, output):
+  evaluated = net_operation.eval(sess, output, input, np.array([observation]))
+  action = np.argmax(evaluated)
+  return [action, evaluated]
 
 def choose_action(env, observation, sess, input, output, epsilon = 0.9):
   evaluated = net_operation.eval(sess, output, input, np.array([observation]))

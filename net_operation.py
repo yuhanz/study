@@ -10,7 +10,7 @@ def eval_and_argmax(session, output_layer, input, input_value):
 
 def eval_and_max(session, output_layer, input, input_value):
   values = eval(session, output_layer, input, input_value)
-  return np.argmax(values)
+  return np.max(values)
 
 def save(session, file_path):
   saver = tf.train.Saver()

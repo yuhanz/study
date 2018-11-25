@@ -36,10 +36,12 @@ im = ax.imshow(firstframe)
 
 for j in  range(1,30):
   observation = observation_next
-  [action, evaluated_rewards] = reinforcement.choose_action(env, observation, sess, input, output)
+  [action, evaluated_rewards] = reinforcement.greedy_choose_action(env, observation, sess, input, output)
   observation_next, reward, done, info = env.step(action)
+  print "=== action: ", ['LEFT', 'RIGHT'][action]
   print "=== reward: ", reward
-  if done:
-    print '=== done'
   frame = env.render(mode = 'rgb_array')
   im.set_data(frame)
+  if done:
+    print '=== done'
+    env.reset()

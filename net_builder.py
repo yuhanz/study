@@ -4,12 +4,14 @@ def get_dimension(input):
   return input.shape.dims[1].value
 
 def build_net(input_size, output_size, learning_rate = 0.01):
-  layer1_size = 10
+  layer1_size = 32
+  layer2_size = 16
 
   with tf.variable_scope('eval'):
     input = build_input(input_size, 'input')
     l1 = build_layer(1, input, layer1_size)
-    output = build_layer(2, l1, output_size)
+    l2 = build_layer(2, l1, layer2_size)
+    output = build_layer(3, l2, output_size)
   with tf.variable_scope('loss'):
     target = build_target(output_size, 'output')
     loss = build_loss(output, target)
