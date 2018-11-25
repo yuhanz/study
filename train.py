@@ -21,6 +21,8 @@ n_output = 2
 OBSERVATION_INDEX = 0
 TARGET_REWARD_INDEX = 2
 
+MODEL_FILE_PATH = './model/model.ckpt'
+
 [input, output, target, loss, train] = net_builder.build_net(n_input, n_output)
 
 
@@ -28,17 +30,26 @@ sess = tf.Session()
 init = tf.global_variables_initializer()
 sess.run(init)
 
-
-records = []
-
-for i in range(1,10):
-  observation = observation_next
+def step_and_collect_data(env, observation, sess, input, output):
   [action, evaluated_rewards] = reinforcement.choose_action(env, observation, sess, input, output)
   print '== action:' + str(action)
   print '== evaluated_rewards:', evaluated_rewards
   observation_next, reward, done, info = env.step(action)
+  # if done:
+  #   print '=== done'
   max_future_reward = net_operation.eval_and_max(sess, output, input, [observation_next])
   target_rewards = reinforcement.to_target_reward(action, reward, max_future_reward, evaluated_rewards[0])
-  records.append([observation, target_rewards])
+  return [target_rewards, observation_next]
 
-reinforcement.learn(sess, records, loss, train, input, target)
+
+for j in  range(1,30):
+    records = []
+
+    for i in range(1,100):
+      observation = observation_next
+      target_rewards, observation_next = step_and_collect_data(env, observation, sess, input, output)
+      records.append([observation, target_rewards])
+
+    reinforcement.learn(sess, records, loss, train, input, target)
+
+net_operation.save(sess, MODEL_FILE_PATH)

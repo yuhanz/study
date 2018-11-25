@@ -12,8 +12,12 @@ def eval_and_max(session, output_layer, input, input_value):
   values = eval(session, output_layer, input, input_value)
   return np.argmax(values)
 
+def save(session, file_path):
+  saver = tf.train.Saver()
+  save_path = saver.save(session, file_path)
+  print("Model saved in path: %s" % save_path)
+  return save_path
 
-def learn(session, q_next, q_eval):
-  session.run([q_next, q_eval], feed_dict={
-    # ?
-  })
+def restore(session, file_path):
+  saver = tf.train.Saver()
+  saver.restore(session, file_path)
