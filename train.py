@@ -54,7 +54,7 @@ for j in  range(1,NUM_EPISODES):
     for i in range(1,NUM_RECORDS):
       observation = observation_next
       target_rewards, observation_next, done, actual_reward = step_and_collect_data(env, observation, sess, input, output)
-
+      print "target_rewards:", target_rewards
       records.append([observation, target_rewards, actual_reward])
       if(done):
         print "=== done"

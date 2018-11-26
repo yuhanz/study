@@ -27,8 +27,9 @@ def to_target_reward(action, reward, max_future_reward, evaluated_reward, gamma 
   return target
 
 def learn(sess, records, loss, train, inputPlaceHolder, targetPlaceHolder):
-  inputs = map(lambda r : r[OBSERVATION_INDEX],records)
-  targets = map(lambda r : r[TARGET_REWARD_INDEX],records)
+  inputs = map(lambda r : r[OBSERVATION_INDEX], records)
+  targets = map(lambda r : r[TARGET_REWARD_INDEX], records)
+  print("=== targets: ", targets)
   sess.run(train, feed_dict={inputPlaceHolder: inputs, targetPlaceHolder: targets})
   loss_value = sess.run(loss, feed_dict={inputPlaceHolder: inputs, targetPlaceHolder: targets})
   print "loss: " + str(loss_value)

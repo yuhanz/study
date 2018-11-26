@@ -9,9 +9,9 @@ def build_net(input_size, output_size, learning_rate = 0.01):
 
   with tf.variable_scope('eval'):
     input = build_input(input_size, 'input')
-    l1 = build_layer(1, input, layer1_size)
-    l2 = build_layer(2, l1, layer2_size)
-    output = build_layer(3, l2, output_size)
+    l1 = tf.nn.relu(build_layer(1, input, layer1_size))
+    l2 = tf.nn.relu(build_layer(2, l1, layer2_size))
+    output = tf.nn.tanh(build_layer(3, l2, output_size))
   with tf.variable_scope('loss'):
     target = build_target(output_size, 'output')
     loss = build_loss(output, target)
@@ -20,7 +20,7 @@ def build_net(input_size, output_size, learning_rate = 0.01):
   return [input, output, target, loss, train]
 
 def build_loss(output_layer, target):
-  return tf.reduce_mean(tf.squared_difference(output_layer, target))
+  return tf.reduce_mean(tf.squared_difference(target, output_layer))
 
 def build_train(loss, learning_rate):
   return tf.train.RMSPropOptimizer(learning_rate).minimize(loss)
@@ -38,5 +38,8 @@ def build_layer(level, input, layer_size):
   with tf.variable_scope('l'+ln):
       w = tf.get_variable('w'+ln, [input_size, layer_size], initializer=w_init);
       b = tf.get_variable('b'+ln, [1, layer_size], initializer=b_init);
-      l = tf.nn.relu(tf.matmul(input, w) + b)
+      l = tf.matmul(input, w) + b
   return l
+
+def build_layer_with_activation(level, input, layer_size):
+  return tf.nn.relu(build_layer(level, input, layer_size))
