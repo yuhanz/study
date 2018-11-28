@@ -39,7 +39,7 @@ def step_and_collect_data(env, observation, sess, input, output):
   print '== evaluated_rewards:', evaluated_rewards
   observation_next, reward, done, info = env.step(action)
   print '== actual_reward:', reward
-  max_future_reward = net_operation.eval_and_max(sess, output, input, [observation_next])
+  max_future_reward = net_operation.eval_and_max(sess, output, input, [observation_next]) if not done else -100
   target_rewards = reinforcement.to_target_reward(action, reward, max_future_reward, evaluated_rewards[0])
   return [target_rewards, observation_next, done, reward]
 
@@ -55,6 +55,7 @@ for j in  range(1,NUM_EPISODES):
       observation = observation_next
       target_rewards, observation_next, done, actual_reward = step_and_collect_data(env, observation, sess, input, output)
       print "target_rewards:", target_rewards
+
       records.append([observation, target_rewards, actual_reward])
       if(done):
         print "=== done"

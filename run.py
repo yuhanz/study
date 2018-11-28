@@ -34,15 +34,18 @@ firstframe = env.render(mode = 'rgb_array')
 fig,ax = plt.subplots()
 im = ax.imshow(firstframe)
 
-for j in  range(1,2000):
+total_steps = 0
+for j in  range(1,10000):
   observation = observation_next
   [action, evaluated_rewards] = reinforcement.greedy_choose_action(env, observation, sess, input, output)
   observation_next, reward, done, info = env.step(action)
+  total_steps += 1
   print "=== action: ", ['LEFT', 'RIGHT'][action]
   print "=== reward: ", reward
   frame = env.render(mode = 'rgb_array')
   im.set_data(frame)
   if done:
     print '=== done'
+    print "=== total_steps:", total_steps
     break
     #env.reset()
