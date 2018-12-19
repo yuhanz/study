@@ -12,7 +12,7 @@ from JSAnimation.IPython_display import display_animation
 import sys
 
 # Create the environment and display the initial state
-env = gym.make('LunarLander-v2')
+env = gym.make('CartPole-v0')
 observation_next = env.reset()
 
 n_input = 4
@@ -21,7 +21,7 @@ n_output = 2
 OBSERVATION_INDEX = 0
 TARGET_REWARD_INDEX = 2
 
-MODEL_FILE_PATH = './model/model.ckpt'
+MODEL_FILE_PATH = './models/car-pole-model/model.ckpt'
 
 [input, output, target, loss, train] = net_builder.build_net(n_input, n_output)
 
