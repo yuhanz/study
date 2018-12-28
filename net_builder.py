@@ -3,10 +3,7 @@ import tensorflow as tf
 def get_dimension(input):
   return input.shape.dims[1].value
 
-def build_net(input_size, output_size, learning_rate = 0.01):
-  layer1_size = 32
-  layer2_size = 16
-
+def build_net(input_size, output_size, learning_rate = 0.01, layer1_size = 32, layer2_size = 16):
   with tf.variable_scope('eval'):
     input = build_input(input_size, 'input')
     l1 = tf.nn.relu(build_layer(1, input, layer1_size))

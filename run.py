@@ -1,51 +1,31 @@
 import numpy as np
-import matplotlib.pyplot as plt
 import tensorflow as tf
-import gym
 
 import net_builder
 import net_operation
 import reinforcement
-
-
-from matplotlib import animation
-from JSAnimation.IPython_display import display_animation
+import gym_app
 
 
 # Create the environment and display the initial state
-env = gym.make('LunarLander-v2')
-observation_next = env.reset()
-
-n_input = env.observation_space.shape[0]
-n_output = env.action_space.n
-
-OBSERVATION_INDEX = 0
-TARGET_REWARD_INDEX = 2
+env, observation_next, n_input, n_output = gym_app.loadGymEnv('LunarLander-v2')
 
 MODEL_FILE_PATH = './model/model.ckpt'
 
 [input, output, target, loss, train] = net_builder.build_net(n_input, n_output)
 
-sess = tf.Session()
-net_operation.restore(sess, MODEL_FILE_PATH)
+sess = gym_app.init_session(MODEL_FILE_PATH)
+im = gym_app.initRender(env)
 
-
-firstframe = env.render(mode = 'rgb_array')
-fig,ax = plt.subplots()
-im = ax.imshow(firstframe)
-
-total_steps = 0
-for j in  range(1,10000):
+for j in range(1,10000):
   observation = observation_next
   [action, evaluated_rewards] = reinforcement.greedy_choose_action(env, observation, sess, input, output)
   observation_next, reward, done, info = env.step(action)
-  total_steps += 1
   print "=== action: ", action
   print "=== reward: ", reward
-  frame = env.render(mode = 'rgb_array')
-  im.set_data(frame)
+  gym_app.render(im, env)
   if done:
     print '=== done'
-    print "=== total_steps:", total_steps
+    print "=== total_steps:", j
     break
     #env.reset()

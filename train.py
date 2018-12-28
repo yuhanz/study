@@ -1,6 +1,6 @@
 import numpy as np
 import tensorflow as tf
-import gym
+import gym_app
 
 import net_builder
 import net_operation
@@ -11,37 +11,13 @@ from JSAnimation.IPython_display import display_animation
 
 import sys
 
-# Create the environment and display the initial state
-env = gym.make('LunarLander-v2')
-observation_next = env.reset()
-
-n_input = env.observation_space.shape[0]
-n_output = env.action_space.n
-
-OBSERVATION_INDEX = 0
-TARGET_REWARD_INDEX = 2
-
 MODEL_FILE_PATH = './model/model.ckpt'
+GYM_ENV_NAME = 'LunarLander-v2'
 
+# Create the environment and display the initial state
+env, observation_next, n_input, n_output = gym_app.loadGymEnv(GYM_ENV_NAME)
 [input, output, target, loss, train] = net_builder.build_net(n_input, n_output)
-
-
-sess = tf.Session()
-if len(sys.argv) > 1:
-  net_operation.restore(sess, MODEL_FILE_PATH)
-else:
-  init = tf.global_variables_initializer()
-  sess.run(init)
-
-def step_and_collect_data(env, observation, sess, input, output):
-  [action, evaluated_rewards] = reinforcement.choose_action(env, observation, sess, input, output)
-  print '== action:' + str(action)
-  print '== evaluated_rewards:', evaluated_rewards
-  observation_next, reward, done, info = env.step(action)
-  print '== actual_reward:', reward
-  max_future_reward = net_operation.eval_and_max(sess, output, input, [observation_next]) if not done else -100
-  target_rewards = reinforcement.to_target_reward(action, reward, max_future_reward, evaluated_rewards[0])
-  return [target_rewards, observation_next, done, reward]
+sess = gym_app.init_session(MODEL_FILE_PATH if len(sys.argv) > 1 else None)
 
 NUM_EPISODES = 300
 
@@ -53,7 +29,7 @@ for j in  range(1,NUM_EPISODES):
 
     for i in range(1,NUM_RECORDS):
       observation = observation_next
-      target_rewards, observation_next, done, actual_reward = step_and_collect_data(env, observation, sess, input, output)
+      target_rewards, observation_next, done, actual_reward = gym_app.step_and_collect_data(env, observation, sess, input, output, lambda max_future_reward, reward, env: reward)
       print "target_rewards:", target_rewards
 
       records.append([observation, target_rewards, actual_reward])

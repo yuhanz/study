@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import tensorflow as tf
-import gym
+import gym_app
 
 import net_builder
 import net_operation
@@ -13,11 +13,7 @@ from JSAnimation.IPython_display import display_animation
 
 
 # Create the environment and display the initial state
-env = gym.make('CartPole-v0')
-observation_next = env.reset()
-
-n_input = 4
-n_output = 2
+env, observation_next, n_input, n_output = gym_app.loadGymEnv('CartPole-v0')
 
 OBSERVATION_INDEX = 0
 TARGET_REWARD_INDEX = 2
@@ -25,27 +21,18 @@ TARGET_REWARD_INDEX = 2
 MODEL_FILE_PATH = './models/car-pole-model/model.ckpt'
 
 [input, output, target, loss, train] = net_builder.build_net(n_input, n_output)
+sess = gym_app.init_session(MODEL_FILE_PATH)
+im = gym_app.initRender(env)
 
-sess = tf.Session()
-net_operation.restore(sess, MODEL_FILE_PATH)
-
-
-firstframe = env.render(mode = 'rgb_array')
-fig,ax = plt.subplots()
-im = ax.imshow(firstframe)
-
-total_steps = 0
 for j in  range(1,10000):
   observation = observation_next
   [action, evaluated_rewards] = reinforcement.greedy_choose_action(env, observation, sess, input, output)
   observation_next, reward, done, info = env.step(action)
-  total_steps += 1
   print "=== action: ", ['LEFT', 'RIGHT'][action]
   print "=== reward: ", reward
-  frame = env.render(mode = 'rgb_array')
-  im.set_data(frame)
+  gym_app.render(im, env)
   if done:
     print '=== done'
-    print "=== total_steps:", total_steps
+    print "=== total_steps:", j
     break
     #env.reset()
