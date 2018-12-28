@@ -13,11 +13,11 @@ from JSAnimation.IPython_display import display_animation
 
 
 # Create the environment and display the initial state
-env = gym.make('CartPole-v0')
+env = gym.make('LunarLander-v2')
 observation_next = env.reset()
 
-n_input = 4
-n_output = 2
+n_input = env.observation_space.shape[0]
+n_output = env.action_space.n
 
 OBSERVATION_INDEX = 0
 TARGET_REWARD_INDEX = 2
@@ -40,7 +40,7 @@ for j in  range(1,10000):
   [action, evaluated_rewards] = reinforcement.greedy_choose_action(env, observation, sess, input, output)
   observation_next, reward, done, info = env.step(action)
   total_steps += 1
-  print "=== action: ", ['LEFT', 'RIGHT'][action]
+  print "=== action: ", action
   print "=== reward: ", reward
   frame = env.render(mode = 'rgb_array')
   im.set_data(frame)

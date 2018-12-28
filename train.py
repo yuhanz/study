@@ -15,8 +15,8 @@ import sys
 env = gym.make('LunarLander-v2')
 observation_next = env.reset()
 
-n_input = 4
-n_output = 2
+n_input = env.observation_space.shape[0]
+n_output = env.action_space.n
 
 OBSERVATION_INDEX = 0
 TARGET_REWARD_INDEX = 2
