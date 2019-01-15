@@ -27,11 +27,14 @@ for j in  range(1,NUM_EPISODES):
     records = []
     NUM_RECORDS = 300
 
+    positive_actual_reward = 0
+
     for i in range(1,NUM_RECORDS):
       observation = observation_next
-      target_rewards, observation_next, done, actual_reward = gym_app.step_and_collect_data(env, observation, sess, input, output, lambda max_future_reward, reward, env: reward)
+      target_rewards, observation_next, done, actual_reward = gym_app.step_and_collect_data(env, observation, sess, input, output, lambda max_future_reward, reward, env: reward + positive_actual_reward)
       print "target_rewards:", target_rewards
 
+      positive_actual_reward += actual_reward if actual_reward > 0 else 0
       records.append([observation, target_rewards, actual_reward])
       if(done):
         print "=== done"
