@@ -1,0 +1,11 @@
+Lunar-lander:
+- The end is pain.
+- Let the process be a reward at the end:
+    collect only the positive result
+    *positive result!
+- Let survival be a reward:
+    The longer of survival, the less of the pain.
+    (When the end reward is positive, the process would shorten the process as well.)
+    *negative result
+- Once having a success, remeber the success and train on the success data
+    save the success steps and reward for future training

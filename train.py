@@ -16,7 +16,7 @@ GYM_ENV_NAME = 'LunarLander-v2'
 
 # Create the environment and display the initial state
 env, observation_next, n_input, n_output = gym_app.loadGymEnv(GYM_ENV_NAME)
-[input, output, target, loss, train] = net_builder.build_net(n_input, n_output)
+[input, output, target, loss, train] = net_builder.build_net(n_input, n_output, learning_rate = 0.001)
 sess = gym_app.init_session(MODEL_FILE_PATH if len(sys.argv) > 1 else None)
 
 NUM_EPISODES = 300
@@ -31,7 +31,7 @@ for j in  range(1,NUM_EPISODES):
 
     for i in range(1,NUM_RECORDS):
       observation = observation_next
-      target_rewards, observation_next, done, actual_reward = gym_app.step_and_collect_data(env, observation, sess, input, output, lambda max_future_reward, reward, env: reward + positive_actual_reward)
+      target_rewards, observation_next, done, actual_reward = gym_app.step_and_collect_data(env, observation, sess, input, output, lambda max_future_reward, reward, env: reward + positive_actual_reward + (20 if observation[6] and observation[7] else -15 if observation[6] or observation[7] else -10))
       print "target_rewards:", target_rewards
 
       positive_actual_reward += actual_reward if actual_reward > 0 else 0
