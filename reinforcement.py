@@ -4,6 +4,8 @@ import numpy as np
 import net_operation
 import net_builder
 
+import mlflow
+
 OBSERVATION_INDEX = 0
 TARGET_REWARD_INDEX = 1
 
@@ -32,4 +34,5 @@ def learn(sess, records, loss, train, inputPlaceHolder, targetPlaceHolder):
   print("=== targets: ", targets)
   sess.run(train, feed_dict={inputPlaceHolder: inputs, targetPlaceHolder: targets})
   loss_value = sess.run(loss, feed_dict={inputPlaceHolder: inputs, targetPlaceHolder: targets})
+  mlflow.log_metric('loss', loss_value)
   print "loss: " + str(loss_value)

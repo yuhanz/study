@@ -10,22 +10,44 @@ from matplotlib import animation
 from JSAnimation.IPython_display import display_animation
 
 import sys
+import mlflow
 
-MODEL_FILE_PATH = './model/model.ckpt'
 GYM_ENV_NAME = 'LunarLander-v2'
+MODEL_FILE_PATH_MAP = { \
+    'LunarLander-v2': './model/model.ckpt', \
+    'CartPole-v0': './models/car-pole-model/model.ckpt' \
+}
+
+MODEL_FILE_PATH = MODEL_FILE_PATH_MAP[GYM_ENV_NAME]
+LEARNING_RATE = 0.001
+
+print('GYM_ENV_NAME: %s', GYM_ENV_NAME)
+print('MODEL_FILE_PATH: %s', MODEL_FILE_PATH)
 
 # Create the environment and display the initial state
 env, observation_next, n_input, n_output = gym_app.loadGymEnv(GYM_ENV_NAME)
-[input, output, target, loss, train] = net_builder.build_net(n_input, n_output, learning_rate = 0.001)
-sess = gym_app.init_session(MODEL_FILE_PATH if len(sys.argv) > 1 else None)
+[input, output, target, loss, train] = net_builder.build_net(n_input, n_output, learning_rate = LEARNING_RATE)
 
-NUM_EPISODES = 300
+RESUME_TRAINING = len(sys.argv) > 1
+sess = gym_app.init_session(MODEL_FILE_PATH if RESUME_TRAINING else None)
+
+NUM_EPISODES = 30
+NUM_RECORDS = 300
+
+mlflow.log_param('GYM_ENV_NAME', GYM_ENV_NAME)
+mlflow.log_param('MODEL_FILE_PATH', MODEL_FILE_PATH)
+mlflow.log_param('LEARNING_RATE', LEARNING_RATE)
+mlflow.log_param('RESUME_TRAINING', RESUME_TRAINING)
+mlflow.log_param('NUM_EPISODES', NUM_EPISODES)
+mlflow.log_param('NUM_RECORDS', NUM_RECORDS)
+
+import datetime
+start_time = datetime.datetime.now()
 
 reward_sums = []
 
 for j in  range(1,NUM_EPISODES):
     records = []
-    NUM_RECORDS = 300
 
     positive_actual_reward = 0
     negatives_actual_reward = 0
@@ -59,10 +81,12 @@ for j in  range(1,NUM_EPISODES):
     reward_sum = reduce(lambda s,r: s + r[2], records, 0)
     reward_sums.append(reward_sum)
     print "=== total actual reward:", reward_sum
+    mlflow.log_metric('sum_actual_reward', reward_sum)
     reinforcement.learn(sess, records, loss, train, input, target)
     if(NUM_RECORDS != len(records)):
       observation_next = env.reset()
 
 print "=== average reward sum: ", reduce(lambda s,x: s + x, reward_sums, 0) / NUM_EPISODES
+print "total_time: " + str(datetime.datetime.now() - start_time)
 
 net_operation.save(sess, MODEL_FILE_PATH)

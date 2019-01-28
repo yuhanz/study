@@ -1,0 +1,14 @@
+artifact_uri: /Users/yzhang/study-reinforcement-learning/mlruns/0/37cf9b4fec0c41b19623f6643da56db1/artifacts
+end_time: 1548650959633
+entry_point_name: ''
+experiment_id: 0
+lifecycle_stage: active
+name: ''
+run_uuid: 37cf9b4fec0c41b19623f6643da56db1
+source_name: train.py
+source_type: 4
+source_version: 1b17f75b22832dd6b4ab6836754dbbb7c4c194fc
+start_time: 1548650944894
+status: 3
+tags: []
+user_id: yzhang
