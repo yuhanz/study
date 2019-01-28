@@ -1,3 +1,4 @@
+import sys
 import numpy as np
 import tensorflow as tf
 
@@ -6,11 +7,19 @@ import net_operation
 import reinforcement
 import gym_app
 
+gym_app_name = (sys.argv + ['LunarLander-v2'])[1]
+
+print('Running %s', gym_app_name)
+
+MODEL_FILE_PATH_MAP = { \
+    'LunarLander-v2': './model/model.ckpt', \
+    'CartPole-v0': './models/car-pole-model/model.ckpt' \
+}
 
 # Create the environment and display the initial state
-env, observation_next, n_input, n_output = gym_app.loadGymEnv('LunarLander-v2')
+env, observation_next, n_input, n_output = gym_app.loadGymEnv(gym_app_name)
 
-MODEL_FILE_PATH = './model/model.ckpt'
+MODEL_FILE_PATH = MODEL_FILE_PATH_MAP[gym_app_name]
 
 [input, output, target, loss, train] = net_builder.build_net(n_input, n_output)
 
