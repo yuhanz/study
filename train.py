@@ -31,8 +31,8 @@ env, observation_next, n_input, n_output = gym_app.loadGymEnv(GYM_ENV_NAME)
 RESUME_TRAINING = len(sys.argv) > 1
 sess = gym_app.init_session(MODEL_FILE_PATH if RESUME_TRAINING else None)
 
-NUM_EPISODES = 30
-NUM_RECORDS = 300
+NUM_EPISODES = 300
+NUM_RECORDS = 600
 
 mlflow.log_param('GYM_ENV_NAME', GYM_ENV_NAME)
 mlflow.log_param('MODEL_FILE_PATH', MODEL_FILE_PATH)
@@ -90,3 +90,4 @@ print "=== average reward sum: ", reduce(lambda s,x: s + x, reward_sums, 0) / NU
 print "total_time: " + str(datetime.datetime.now() - start_time)
 
 net_operation.save(sess, MODEL_FILE_PATH)
+mlflow.log_artifacts(MODEL_FILE_PATH[0:MODEL_FILE_PATH.rfind('/')])
