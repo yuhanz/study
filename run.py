@@ -36,14 +36,14 @@ for j in range(1,10000):
   observation_next, reward, done, info = env.step(action)
   print "=== action: ", action
   print "=== reward: ", reward
+
+  mlflow.log_metric('reward', reward)
   total_reward += reward
 
   gym_app.render(im, env)
   if done:
     print '=== done'
     print "=== total_steps:", j
+    print "=== total_reward:", total_reward
     break
     #env.reset()
-
-
-mlflow.log_metric('total_reward', total_reward)

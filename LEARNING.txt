@@ -7,5 +7,5 @@ Lunar-lander:
     The longer of survival, the less of the pain.
     (When the end reward is positive, the process would shorten the process as well.)
     *negative result
-- Once having a success, remeber the success and train on the success data
+- Once having a success, amplify the success as training data
     save the success steps and reward for future training

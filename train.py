@@ -6,6 +6,8 @@ import net_builder
 import net_operation
 import reinforcement
 
+import json_util
+
 from matplotlib import animation
 from JSAnimation.IPython_display import display_animation
 
@@ -78,11 +80,17 @@ for j in  range(1,NUM_EPISODES):
         print "=== done"
         break
 
+
     reward_sum = reduce(lambda s,r: s + r[2], records, 0)
     reward_sums.append(reward_sum)
     print "=== total actual reward:", reward_sum
     mlflow.log_metric('sum_actual_reward', reward_sum)
     reinforcement.learn(sess, records, loss, train, input, target)
+    if records[-1][2] > 0:
+        print "Succeeded!"
+        mlflow.log_metric('success', 1)
+        json_util.save_to_file('/tmp/success_records_{}.json'.format(j));
+
     if(NUM_RECORDS != len(records)):
       observation_next = env.reset()
 
