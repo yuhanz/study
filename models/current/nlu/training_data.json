@@ -118,6 +118,18 @@
         "text": "I'm good"
       },
       {
+        "intent": "mood_great",
+        "text": "good $200"
+      },
+      {
+        "intent": "mood_great",
+        "text": "200"
+      },
+      {
+        "intent": "mood_great",
+        "text": "$200"
+      },
+      {
         "intent": "mood_unhappy",
         "text": "sad"
       },
@@ -156,6 +168,46 @@
       {
         "intent": "mood_unhappy",
         "text": "so sad"
+      },
+      {
+        "intent": "mood_unhappy",
+        "text": "2019"
+      },
+      {
+        "intent": "mood_unhappy",
+        "text": "2018"
+      },
+      {
+        "intent": "mood_unhappy",
+        "text": "2017"
+      },
+      {
+        "intent": "mood_unhappy",
+        "text": "2016"
+      },
+      {
+        "intent": "mood_unhappy",
+        "text": "2015"
+      },
+      {
+        "intent": "mood_unhappy",
+        "text": "2014"
+      },
+      {
+        "intent": "mood_unhappy",
+        "text": "2013"
+      },
+      {
+        "intent": "mood_unhappy",
+        "text": "2012"
+      },
+      {
+        "intent": "mood_unhappy",
+        "text": "2011"
+      },
+      {
+        "intent": "mood_unhappy",
+        "text": "2010"
       }
     ],
     "regex_features": [],

@@ -12,6 +12,7 @@
 * mood_unhappy
   - utter_cheer_up
   - utter_did_that_help
+  - action_get_great_price
 * mood_affirm
   - utter_happy
 
@@ -21,6 +22,7 @@
 * mood_unhappy
   - utter_cheer_up
   - utter_did_that_help
+  - action_get_great_price
 * mood_deny
   - utter_goodbye
 

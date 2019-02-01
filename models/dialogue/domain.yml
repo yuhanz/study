@@ -28,7 +28,7 @@ slots:
   greatPrice:
     auto_fill: true
     initial_value: unknown
-    type: rasa_core.slots.TextSlot
+    type: rasa_core.slots.UnfeaturizedSlot
   model:
     auto_fill: true
     initial_value: Accord
@@ -49,7 +49,7 @@ templates:
   - text: Did that help you?
   utter_goodbye:
   - text: Bye
-  - text: "{model}'s great price is at ${greatPrice}"
+  - text: "{model}'s great price is at ${greatPrice} at year {year}"
   utter_greet:
   - text: Hey {name}! How are you?
   utter_happy:

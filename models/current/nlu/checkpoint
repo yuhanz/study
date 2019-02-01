@@ -1,2 +1,2 @@
-model_checkpoint_path: "/private/tmp/models/current/nlu/intent_classifier_tensorflow_embedding.ckpt"
-all_model_checkpoint_paths: "/private/tmp/models/current/nlu/intent_classifier_tensorflow_embedding.ckpt"
+model_checkpoint_path: "/Users/yzhang/buyer-adviser/models/current/nlu/intent_classifier_tensorflow_embedding.ckpt"
+all_model_checkpoint_paths: "/Users/yzhang/buyer-adviser/models/current/nlu/intent_classifier_tensorflow_embedding.ckpt"

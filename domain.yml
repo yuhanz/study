@@ -30,7 +30,7 @@ templates:
 
   utter_goodbye:
   - text: "Bye"
-  - text: "{model}'s great price is at ${greatPrice}"
+  - text: "{model}'s great price is at ${greatPrice} at year {year}"
 
 slots:
   name:
@@ -42,5 +42,5 @@ slots:
   year:
     type: unfeaturized
   greatPrice:
-    type: text
+    type: unfeaturized
     initial_value: "unknown"
