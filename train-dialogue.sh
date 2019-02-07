@@ -1,1 +1,1 @@
-python -m rasa_core.train -d domain.yml -s stories.md -o models/dialogue
+python -m rasa_core.train -d domain.yml -s stories.md -o models/dialogue -c config.yml
