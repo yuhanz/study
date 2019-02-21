@@ -22,13 +22,14 @@ MODEL_FILE_PATH_MAP = { \
 
 MODEL_FILE_PATH = MODEL_FILE_PATH_MAP[GYM_ENV_NAME]
 LEARNING_RATE = 0.001
+HIDDEN_LAYER_SIZES = [32, 16, 8]
 
 print('GYM_ENV_NAME: %s', GYM_ENV_NAME)
 print('MODEL_FILE_PATH: %s', MODEL_FILE_PATH)
 
 # Create the environment and display the initial state
 env, observation_next, n_input, n_output = gym_app.loadGymEnv(GYM_ENV_NAME)
-[input, output, target, loss, train] = net_builder.build_net(n_input, n_output, learning_rate = LEARNING_RATE)
+[input, output, target, loss, train] = net_builder.build_net(n_input, n_output, learning_rate = LEARNING_RATE, hidden_layer_sizes = HIDDEN_LAYER_SIZES)
 
 RESUME_TRAINING = len(sys.argv) > 1
 sess = gym_app.init_session(MODEL_FILE_PATH if RESUME_TRAINING else None)
@@ -42,6 +43,7 @@ mlflow.log_param('LEARNING_RATE', LEARNING_RATE)
 mlflow.log_param('RESUME_TRAINING', RESUME_TRAINING)
 mlflow.log_param('NUM_EPISODES', NUM_EPISODES)
 mlflow.log_param('NUM_RECORDS', NUM_RECORDS)
+mlflow.log_param('HIDDEN_LAYER_SIZES', HIDDEN_LAYER_SIZES)
 
 import datetime
 start_time = datetime.datetime.now()
@@ -89,7 +91,7 @@ for j in  range(1,NUM_EPISODES):
     if records[-1][2] > 0:
         print "Succeeded!"
         mlflow.log_metric('success', 1)
-        json_util.save_to_file('/tmp/success_records_{}.json'.format(j));
+        json_util.save_to_file(records, '/tmp/success_records_{}.json'.format(j));
 
     if(NUM_RECORDS != len(records)):
       observation_next = env.reset()

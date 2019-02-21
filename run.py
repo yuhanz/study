@@ -17,13 +17,14 @@ MODEL_FILE_PATH_MAP = { \
     'LunarLander-v2': './model/model.ckpt', \
     'CartPole-v0': './models/car-pole-model/model.ckpt' \
 }
+HIDDEN_LAYER_SIZES = [32, 16, 8]
 
 # Create the environment and display the initial state
 env, observation_next, n_input, n_output = gym_app.loadGymEnv(gym_app_name)
 
 MODEL_FILE_PATH = MODEL_FILE_PATH_MAP[gym_app_name]
 
-[input, output, target, loss, train] = net_builder.build_net(n_input, n_output)
+[input, output, target, loss, train] = net_builder.build_net(n_input, n_output, hidden_layer_sizes = HIDDEN_LAYER_SIZES)
 
 sess = gym_app.init_session(MODEL_FILE_PATH)
 im = gym_app.initRender(env)
