@@ -3,12 +3,12 @@ import tensorflow as tf
 def get_dimension(input):
   return input.shape.dims[1].value
 
-def build_net(input_size, output_size, learning_rate = 0.01, layer1_size = 32, layer2_size = 16):
+def build_net(input_size, output_size, learning_rate = 0.01, hidden_layer_sizes = [32, 16]):
   with tf.variable_scope('eval'):
-    input = build_input(input_size, 'input')
-    l1 = tf.nn.relu(build_layer(1, input, layer1_size))
-    l2 = tf.nn.relu(build_layer(2, l1, layer2_size))
-    output = tf.nn.tanh(build_layer(3, l2, output_size))
+    l = input = build_input(input_size, 'input')
+    for index, size in enumerate(hidden_layer_sizes):
+      l = tf.nn.relu(build_layer(1+index, l, size))
+    output = tf.nn.tanh(build_layer(len(hidden_layer_sizes)+1, l, output_size))
   with tf.variable_scope('loss'):
     target = build_target(output_size, 'output')
     loss = build_loss(output, target)
