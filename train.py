@@ -23,7 +23,7 @@ MODEL_FILE_PATH_MAP = { \
 MODEL_FILE_PATH = MODEL_FILE_PATH_MAP[GYM_ENV_NAME]
 LEARNING_RATE = 0.001
 HIDDEN_LAYER_SIZES = [32, 16, 8]
-EPSILON = 0.8
+EPSILON = 0.9
 
 print('GYM_ENV_NAME: %s', GYM_ENV_NAME)
 print('MODEL_FILE_PATH: %s', MODEL_FILE_PATH)
@@ -52,6 +52,7 @@ import datetime
 start_time = datetime.datetime.now()
 
 reward_sums = []
+success_data = []
 
 for j in  range(1,NUM_EPISODES):
     records = []
@@ -94,7 +95,11 @@ for j in  range(1,NUM_EPISODES):
     if records[-1][2] > 0:
         print "Succeeded!"
         mlflow.log_metric('success', 1)
-        json_util.save_to_file(records, '/tmp/success_records_{}.json'.format(j));
+        plain_records = map(lambda r: r[0].tolist(), records)
+        filename = '/tmp/success/records_{}.json'.format(j)
+        json_util.save_to_file(plain_records, filename);
+        success_data += [filename]
+        net_operation.save(sess, '/tmp/success/model_{}.ckpt'.format(j))
 
     if(NUM_RECORDS != len(records)):
       observation_next = env.reset()
@@ -104,3 +109,5 @@ print "total_time: " + str(datetime.datetime.now() - start_time)
 
 net_operation.save(sess, MODEL_FILE_PATH)
 mlflow.log_artifacts(MODEL_FILE_PATH[0:MODEL_FILE_PATH.rfind('/')])
+if len(success_data) > 0:
+  mlflow.log_artifacts('/tmp/success/')
