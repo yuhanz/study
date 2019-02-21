@@ -23,6 +23,7 @@ MODEL_FILE_PATH_MAP = { \
 MODEL_FILE_PATH = MODEL_FILE_PATH_MAP[GYM_ENV_NAME]
 LEARNING_RATE = 0.001
 HIDDEN_LAYER_SIZES = [32, 16, 8]
+EPSILON = 0.8
 
 print('GYM_ENV_NAME: %s', GYM_ENV_NAME)
 print('MODEL_FILE_PATH: %s', MODEL_FILE_PATH)
@@ -44,6 +45,8 @@ mlflow.log_param('RESUME_TRAINING', RESUME_TRAINING)
 mlflow.log_param('NUM_EPISODES', NUM_EPISODES)
 mlflow.log_param('NUM_RECORDS', NUM_RECORDS)
 mlflow.log_param('HIDDEN_LAYER_SIZES', HIDDEN_LAYER_SIZES)
+mlflow.log_param('EPSILON', EPSILON)
+
 
 import datetime
 start_time = datetime.datetime.now()
@@ -65,7 +68,7 @@ for j in  range(1,NUM_EPISODES):
       num_wheels_touchdown = observation[6] + observation[7];
       wheel_touchdown_reward = 50 if num_wheels_touchdown >= 2 else (num_wheels_touchdown-2) * 50
 
-      target_rewards, observation_next, done, actual_reward = gym_app.step_and_collect_data(env, observation, sess, input, output, lambda max_future_reward, reward, env: reward + positive_actual_reward + negatives_actual_reward + wheel_touchdown_reward)
+      target_rewards, observation_next, done, actual_reward = gym_app.step_and_collect_data(env, observation, sess, input, output, lambda max_future_reward, reward, env: reward + positive_actual_reward + negatives_actual_reward + wheel_touchdown_reward, epsilon = EPSILON)
       print "target_rewards:", target_rewards
 
       if actual_reward > 0:

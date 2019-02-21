@@ -32,8 +32,8 @@ def init_session(modelFilePath):
     sess.run(init)
   return sess
 
-def step_and_collect_data(env, observation, sess, input, output, doneRewardFn = None):
-  [action, evaluated_rewards] = reinforcement.choose_action(env, observation, sess, input, output)
+def step_and_collect_data(env, observation, sess, input, output, doneRewardFn = None, epsilon = 0.9):
+  [action, evaluated_rewards] = reinforcement.choose_action(env, observation, sess, input, output, epsilon = epsilon)
   print '== action:' + str(action)
   print '== evaluated_rewards:', evaluated_rewards
   observation_next, reward, done, info = env.step(action)
