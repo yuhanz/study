@@ -21,7 +21,7 @@ actionFire = np.array([1, 0, 0, 0, 0, 0, 0, 0, 0])  # fire
 actionRelease = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0]) # release
 #action = env.action_space.sample()
 
-frames = 30
+frames = 2000
 
 # basic inputs
 # [brake, steer, press_fuel]
@@ -48,10 +48,12 @@ for i in range(1,frames):
 
         # TODO: decide [brake, steer, press_fuel]
         [brake, steer, press_fuel] = [0, -1, 0]
+        if i> 600 and i % 80 == 0:
+            press_fuel = 6
         jump_fuel += press_fuel
 
         jump = actionJump * [1 if jump_fuel > 0 else 0]
-        fire = actionFire * (i%2)
+        fire = actionFire * ((i/4)%2)
         left = actionLeft * (steer > 0)
         right = actionRight * (steer <= 0)
         action = fire + left + right + jump
@@ -59,5 +61,5 @@ for i in range(1,frames):
         jump_fuel = 0 if jump_fuel <= 0 else jump_fuel - 1
 
         previous_screen = _obs
-        img = Image.fromarray(_obs, 'RGB')
-        img.show()
+        # img = Image.fromarray(_obs, 'RGB')
+        # img.show()
