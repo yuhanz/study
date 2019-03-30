@@ -14,7 +14,7 @@ actionForward = np.array([0, 0, 0, 0, 0, 0, 0, 1, 0])  # forward
 actionRelease = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0]) # release
 #action = env.action_space.sample()
 
-frames = 20
+frames = 200
 
 for i in range(1,frames):
     action = np.logical_or(actionForward, [actionFire, actionRelease][i%2])
@@ -27,5 +27,5 @@ for i in range(1,frames):
         shiftValue = detection.detect_horizontal_shift_all_rows(previous_screen, _obs)
         print('shift: ', shiftValue)
         previous_screen = _obs
-        img = Image.fromarray(_obs, 'RGB')
-        img.show()
+        # img = Image.fromarray(_obs, 'RGB')
+        # img.show()
