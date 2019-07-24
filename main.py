@@ -31,7 +31,7 @@ x_desired = [1.0, 0.0, 0.0]
 # X' = [-sin(theta); cos(theta); u - 10 sin(theta)]
 # X' = [0* cos(theta) -1 * sin(theta) + 0u;
 #       1* cos(theta) +0 * sin(theta) + 0u;
-#       0* cos(theta) -10* sin(theta) + u]
+#       0* cos(theta) -10* sin(theta) + 1u]
 # X' = Ax + Bu
 # A = [0, -1, 0; 1, 0, 0; 0, -10, 0]
 # B = [0,0,1]
@@ -39,7 +39,7 @@ x_desired = [1.0, 0.0, 0.0]
 # Q = [1, 0, 0; 0, 1, 0; 0, 0, 10]
 # R = [0.01]
 
-A = np.matrix('0.0, -1.0, 0.0; 1.0, 0.0, 0.0; 0.0, -10.0, 0.0')
+A = np.matrix('0.0, -1.0, 0.0; 1.0, 0.0, 0.0; 0.0, -10.0, 1.0')
 B = np.matrix('0.0; 0.0; 1.0')
 Q = np.matrix('1.0, 0.0, 0.0; 0.0, 1.0, 0.0; 0.0, 0.0, 3.0')
 R = np.matrix('0.1')
