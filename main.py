@@ -33,13 +33,23 @@ x_desired = [1.0, 0.0, 0.0]
 #       1* cos(theta) +0 * sin(theta) + 0u;
 #       0* cos(theta) -10* sin(theta) + 1u]
 # X' = Ax + Bu
-# A = [0, -1, 0; 1, 0, 0; 0, -10, 0]
+# A = [0, -1, 0; 1, 0, 0; 0, -10, 1]
 # B = [0,0,1]
 # Make up Q and R
 # Q = [1, 0, 0; 0, 1, 0; 0, 0, 10]
 # R = [0.01]
 
-A = np.matrix('0.0, -1.0, 0.0; 1.0, 0.0, 0.0; 0.0, -10.0, 1.0')
+# -- second attempt:
+# theta" = 3* (m*l**2) * u - 3 * g/ (2*l) *sin(theta + pi)
+# theta" = 3u + 15 sin(theta)
+# X' = [0* cos(theta) -1 * sin(theta) + 0u;
+#       1* cos(theta) +0 * sin(theta) + 0u;
+#       0* cos(theta) +15* sin(theta) + 3u]
+#
+
+
+#A = np.matrix('0.0, -1.0, 0.0; 1.0, 0.0, 0.0; 0.0, -10.0, 1.0')
+A = np.matrix('0.0, -1.0, 0.0; 1.0, 0.0, 0.0; 0.0, 15.0, 3.0')
 B = np.matrix('0.0; 0.0; 1.0')
 Q = np.matrix('1.0, 0.0, 0.0; 0.0, 1.0, 0.0; 0.0, 0.0, 3.0')
 R = np.matrix('0.1')
