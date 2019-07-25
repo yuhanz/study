@@ -29,9 +29,9 @@ x_desired = [1.0, 0.0, 0.0]
 # theta" = [u - 10 sin(theta)]
 # X' = [cos'(theta); sin'(theta); theta"]
 # X' = [-sin(theta); cos(theta); u - 10 sin(theta)]
-# X' = [0* cos(theta) -1 * sin(theta) + 0u;
-#       1* cos(theta) +0 * sin(theta) + 0u;
-#       0* cos(theta) -10* sin(theta) + 1u]
+# X' = [0* cos(theta) -1 * sin(theta) + 0*theta' + 0u;
+#       1* cos(theta) +0 * sin(theta) + 0*theta' + 0u;
+#       0* cos(theta) -10* sin(theta) + 0*theta' + 1u]
 # X' = Ax + Bu
 # A = [0, -1, 0; 1, 0, 0; 0, -10, 1]
 # B = [0,0,1]
@@ -42,14 +42,14 @@ x_desired = [1.0, 0.0, 0.0]
 # -- second attempt:
 # theta" = 3* (m*l**2) * u - 3 * g/ (2*l) *sin(theta + pi)
 # theta" = 3u + 15 sin(theta)
-# X' = [0* cos(theta) -1 * sin(theta) + 0u;
-#       1* cos(theta) +0 * sin(theta) + 0u;
-#       0* cos(theta) +15* sin(theta) + 3u]
+# X' = [0* cos(theta) -1 * sin(theta) + 0*theta' + 0u;
+#       1* cos(theta) +0 * sin(theta) + 0*theta' + 0u;
+#       0* cos(theta) +15* sin(theta) + 0*theta' + 3u]
 #
 
 
-#A = np.matrix('0.0, -1.0, 0.0; 1.0, 0.0, 0.0; 0.0, -10.0, 1.0')
-A = np.matrix('0.0, -1.0, 0.0; 1.0, 0.0, 0.0; 0.0, 15.0, 3.0')
+A = np.matrix('0.0, -1.0, 0.0; 1.0, 0.0, 0.0; 0.0, -10.0, 1.0')
+# A = np.matrix('0.0, -1.0, 0.0; 1.0, 0.0, 0.0; 0.0, 15.0, 3.0')
 B = np.matrix('0.0; 0.0; 1.0')
 Q = np.matrix('1.0, 0.0, 0.0; 0.0, 1.0, 0.0; 0.0, 0.0, 3.0')
 R = np.matrix('0.1')
@@ -58,11 +58,12 @@ K, S, E = control.lqr(A, B, Q, R)
 
 print("K:", K)
 # import pdb; pdb.set_trace()
+# exit()
 
 def stepByLQR(observation, env):
     X = observation
     # u = -K * (X - X.desired) = -K* (X - [1,0,0])
-    u = np.matmul(-K, X - [1,0,0])
+    u = np.matmul(-K, X - x_desired)
     print("u:", u)
     return env.step([u])
 
@@ -86,7 +87,7 @@ def guided_run(observation):
     frame = env.render(mode = 'rgb_array')
     im.set_data(frame)
     frames.append(frame)
-    return observation[0]
+    return observation.flatten()
 
 for i in range(1,500):
     observation = guided_run(observation)
