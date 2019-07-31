@@ -8,7 +8,6 @@ import gym
 from matplotlib import animation
 
 import control
-import math
 
 
 # Create the environment and display the initial state
@@ -49,8 +48,8 @@ x_desired = [1.0, 0.0, 0.0]
 #
 
 
-# A = np.matrix('0.0, -1.0, 0.0; 1.0, 0.0, 0.0; 0.0, -10.0, 1.0')
-A = np.matrix('0.0, -1.0, 0.0; 1.0, 0.0, 0.0; 0.0, 15.0, 3.0')
+A = np.matrix('0.0, -1.0, 0.0; 1.0, 0.0, 0.0; 0.0, -10.0, 1.0')
+# A = np.matrix('0.0, -1.0, 0.0; 1.0, 0.0, 0.0; 0.0, 15.0, 3.0')
 B = np.matrix('0.0; 0.0; 1.0')
 Q = np.matrix('1.0, 0.0, 0.0; 0.0, 1.0, 0.0; 0.0, 0.0, 3.0')
 R = np.matrix('0.1')
@@ -64,13 +63,12 @@ print("K:", K)
 def stepBySwingUp(observation, env):
     # E.desired = mgl = 1*10*1 = 10
     # E = m*l**2*θ’  + m*g*l*cosθ
-    # u = -k * θ’ * (E - E.desired)
-    cosTheta, sinTheta, thetaDot = observation
-    E = thetaDot + 10 * sinTheta
+    cosThena, sinTheta, thetaDot = observation
+    E = thetaDot + 10 * cosTheta
     E_desired = 10
     theta = math.acos(cosTheta)
-    k = 0.003
-    u = -k * thetaDot * (E - E_desired)
+    k = 1.0
+    u = -k * theta * (E - E_desired)
     return env.step([u])
 
 
@@ -96,17 +94,14 @@ def onclick(action):
 def guided_run(observation):
     global frames
     print("Observation0:", observation)
-    # stepMethod = stepByLQR
-    # stepMethod = stepBySwingUp
-    stepMethod = stepByLQR if observation[0] > 0.95 else stepBySwingUp
-    observation, reward, done, info = stepMethod(observation, env)
+    observation, reward, done, info = stepByLQR(observation, env)
     print("Observation: ", observation)
     frame = env.render(mode = 'rgb_array')
     im.set_data(frame)
     frames.append(frame)
     return observation.flatten()
 
-for i in range(1,1000):
+for i in range(1,500):
     observation = guided_run(observation)
 
 
