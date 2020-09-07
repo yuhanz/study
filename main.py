@@ -1,3 +1,5 @@
+# based on https://pytorch.org/tutorials/intermediate/torchvision_tutorial.html
+
 from engine import train_one_epoch, evaluate
 import utils
 from pennfudan import *
