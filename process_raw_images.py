@@ -26,7 +26,7 @@ if ratio > TARGET_RATIO:
         if(startWidth + TARGET_W > image.size[0]):
             startWidth = image.size[0] - TARGET_W
         # import pdb; pdb.set_trace()
-        images = images + [image.crop((startWidth, 0, TARGET_W, TARGET_H))]
+        images = images + [image.crop((startWidth, 0, startWidth + TARGET_W, TARGET_H))]
 else:
     height = int(TARGET_W / ratio)
     print("ratio", ratio)
@@ -38,7 +38,7 @@ else:
         startHeight = i * TARGET_H
         if(startHeight + TARGET_H > image.size[1]):
             startHeight = image.size[1] - TARGET_H
-        images = images + [image.crop((0, startHeight, TARGET_W, TARGET_H))]
+        images = images + [image.crop((0, startHeight, TARGET_W, startHeight + TARGET_H))]
 
 for index, image in enumerate(images):
     print('writing ', index)

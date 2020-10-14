@@ -31,3 +31,20 @@ python process_raw_images.py data/real/real030.jpg /tmp/output/real_030_
 python process_raw_images.py data/real/real031.jpg /tmp/output/real_031_
 python process_raw_images.py data/real/real032.jpg /tmp/output/real_032_
 python process_raw_images.py data/real/real033.jpg /tmp/output/real_033_
+
+python process_raw_images.py data/metalslug/metalslug001.jpg /tmp/output/metalslug_001_
+python process_raw_images.py data/metalslug/metalslug003.gif /tmp/output/metalslug_003_
+python process_raw_images.py data/metalslug/metalslug004.jpg /tmp/output/metalslug_004_
+python process_raw_images.py data/metalslug/metalslug005.gif /tmp/output/metalslug_005_
+python process_raw_images.py data/metalslug/metalslug006.gif /tmp/output/metalslug_006_
+python process_raw_images.py data/metalslug/metalslug007.png /tmp/output/metalslug_007_
+python process_raw_images.py data/metalslug/metalslug008.png /tmp/output/metalslug_008_
+python process_raw_images.py data/metalslug/metalslug009.png /tmp/output/metalslug_009_
+python process_raw_images.py data/metalslug/metalslug010.png /tmp/output/metalslug_010_
+python process_raw_images.py data/metalslug/metalslug011.jpg /tmp/output/metalslug_011_
+python process_raw_images.py data/metalslug/metalslug012.png /tmp/output/metalslug_012_
+python process_raw_images.py data/metalslug/metalslug013.gif /tmp/output/metalslug_013_
+python process_raw_images.py data/metalslug/metalslug013.jpg /tmp/output/metalslug_013_
+python process_raw_images.py data/metalslug/metalslug014.jpg /tmp/output/metalslug_014_
+python process_raw_images.py data/metalslug/metalslug016.png /tmp/output/metalslug_016_
+python process_raw_images.py data/metalslug/metalslug017.png /tmp/output/metalslug_017_
