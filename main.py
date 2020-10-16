@@ -40,30 +40,57 @@ discriminator_model = nn.Sequential(\
     conv3x3(64, 64, (2,2)), \
     nn.BatchNorm2d(64), \
     nn.LeakyReLU(0.2), \
+    conv3x3(64, 64, (2,2)), \
+    nn.BatchNorm2d(64), \
+    nn.LeakyReLU(0.2), \
+    conv3x3(64, 64, (2,2)), \
+    nn.BatchNorm2d(64), \
+    nn.LeakyReLU(0.2), \
     nn.Flatten(), \
-    nn.Linear(64 * 8 * 8, 1), \
+    nn.Linear(64 * 10 * 10, 1), \
     nn.Sigmoid())
 # test input:
-#input = torch.from_numpy(np.random.rand(1,3,32,32).astype(np.float32))
+#input = torch.from_numpy(np.random.rand(1,3,160,160).astype(np.float32))
 
 # generator model
 generator_model = nn.Sequential(\
-    nn.Linear(100, 64*9*9), \
-    nn.BatchNorm1d(64*9*9), \
+    conv3x3(3, 64, (2,2)), \
+    nn.BatchNorm2d(64), \
     nn.LeakyReLU(0.2), \
-    View((64,9,9)), \
+    conv3x3(64, 64, (2,2)), \
+    nn.BatchNorm2d(64), \
+    nn.LeakyReLU(0.2), \
+    conv3x3(64, 64, (2,2)), \
+    nn.BatchNorm2d(64), \
+    nn.LeakyReLU(0.2), \
+    conv3x3(64, 64, (2,2)), \
+    nn.BatchNorm2d(64), \
+    nn.LeakyReLU(0.2), \
+    conv3x3(64, 1, (1,1)), \
+    nn.Flatten(), \
+    nn.Linear(100, 64*10*10), \
+    nn.BatchNorm1d(64*10*10), \
+    nn.LeakyReLU(0.2), \
+    View((64,10,10)), \
     conv3x3transpose(64,64, (2,2), 1), \
     nn.BatchNorm2d(64), \
     nn.LeakyReLU(0.2), \
     conv3x3transpose(64,64, (2,2), 0), \
     nn.BatchNorm2d(64), \
     nn.LeakyReLU(0.2), \
+    conv3x3transpose(64,64, (2,2), 0), \
+    nn.BatchNorm2d(64), \
+    nn.LeakyReLU(0.2), \
+    conv3x3transpose(64,64, (2,2), 0), \
+    nn.BatchNorm2d(64), \
+    nn.LeakyReLU(0.2), \
+    conv3x3(64, 3, 1, 2), \
     Narrow(1), \
-    conv3x3(64, 3, 1, 0), \
     nn.Tanh())
     # result shape: 33x33
 # test input:
 #input = torch.from_numpy(np.random.rand(20,100).astype(np.float32))
+#img  = torch.from_numpy(np.random.rand(20,3,160,160).astype(np.float32))
 
 # generator loss
 gan_model = nn.Sequential(generator_model, discriminator_model)
