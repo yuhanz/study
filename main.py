@@ -156,19 +156,16 @@ game_dataset = np.array(game_dataset)
 def trainDiscriminator(discriminator_model, images, labels):
     for param in discriminator_model.parameters():
         param.requires_grad = True
-
     images = images.to(device)
     labels = labels.to(device)
-
     optimizer = create_optimizer(discriminator_model)
-
-    num_epochs = 2
+    num_epochs = 10
     for epoch in range(num_epochs):
         #labels = torch.from_numpy(np.ones(batch_size).astype(np.float32))
         outputs = discriminator_model(images)
         loss = criterion(outputs, labels)
         print("Training discriminator epoch {} of {}".format(epoch, num_epochs))
-        print(loss)
+        print("loss", loss)
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
@@ -194,7 +191,7 @@ def trainGenerator(forward_generator_model, back_generator_model, discriminator_
         outputs = cycle_gan_model(images)
         loss = criterion(outputs, labels)
         print("Training cycle_gan_model epoch {} of {}".format(epoch, num_epochs))
-        print(loss)
+        print("loss", loss)
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
@@ -202,8 +199,8 @@ def trainGenerator(forward_generator_model, back_generator_model, discriminator_
 generated_street_images = game2street_generator_model(torch.from_numpy(game_dataset))
 generated_game_images = game2street_generator_model(torch.from_numpy(street_dataset))
 
-trainDiscriminator(game_discriminator_model, game_dataset + generated_game_images, [1] * len(game_dataset) + [0] * len(generated_game_images))
-trainDiscriminator(game_discriminator_model, game_dataset + generated_game_images, [1] * len(game_dataset) + [0] * len(generated_game_images))
+trainDiscriminator(game_discriminator_model, torch.from_numpy(np.concatenate([game_dataset, generated_game_images.detach().numpy()])), torch.from_numpy(np.array([1] * len(game_dataset) + [0] * len(generated_game_images)).astype(np.float32)))
+trainDiscriminator(street_discriminator_model, torch.from_numpy(np.concatenate([street_dataset, generated_street_images.detach().numpy()])), torch.from_numpy(np.array([1] * len(street_dataset) + [0] * len(generated_street_images)).astype(np.float32)))
 
 trainDiscriminator(discriminator_model, images, labels)
 
