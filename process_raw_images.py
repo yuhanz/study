@@ -9,7 +9,7 @@ image = Image.open(FILE_NAME)
 w, h = image.size
 ratio = w / float(h)
 
-TARGET_W = 240
+TARGET_W = 160
 TARGET_H = 160
 TARGET_RATIO = TARGET_W / float(TARGET_H);
 
