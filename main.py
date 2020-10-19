@@ -133,10 +133,9 @@ street_dataset = []
 game_dataset = []
 for index, (image, label) in enumerate(image_dataset):
     if(label == 0):
-        game_dataset = game_dataset + [np.asarray(image).transpose().astype(np.float32)]
+        game_dataset = game_dataset + [np.asarray(image).transpose().astype(np.float32) / 128 - 1]
     else:
-        street_dataset = street_dataset + [np.asarray(image).transpose().astype(np.float32)]
-
+        street_dataset = street_dataset + [np.asarray(image).transpose().astype(np.float32) / 128 - 1]
 street_dataset = np.array(street_dataset)
 game_dataset = np.array(game_dataset)
 
@@ -144,11 +143,6 @@ game_discriminator_model = create_discriminator_model()
 street_discriminator_model = create_discriminator_model()
 game2street_generator_model = create_generator_model()
 street2game_generator_model = create_generator_model()
-
-
-# fig,ax = plt.subplots()
-# ax.imshow(image_dataset[0][0])
-# plt.show()
 
 
 # training discriminator
@@ -160,7 +154,6 @@ def trainDiscriminator(discriminator_model, images, labels):
     optimizer = create_optimizer(discriminator_model)
     num_epochs = 10
     for epoch in range(num_epochs):
-        #labels = torch.from_numpy(np.ones(batch_size).astype(np.float32))
         outputs = discriminator_model(images)
         loss = criterion(outputs, labels)
         print("Training discriminator epoch {} of {}".format(epoch, num_epochs))
@@ -183,7 +176,6 @@ def trainCyclicGenerator(forward_generator_model, back_generator_model, discrimi
     optimizer = create_optimizer(cycle_gan_model)
     num_epochs = 10
     for epoch in range(num_epochs):
-        #labels = torch.from_numpy(np.ones(batch_size).astype(np.float32))
         outputs = cycle_gan_model(images)
         loss = criterion(outputs, labels)
         print("Training cycle_gan_model epoch {} of {}".format(epoch, num_epochs))
@@ -208,11 +200,9 @@ torch.save(street_discriminator_model.state_dict(), './models/street_discriminat
 # street_discriminator_model.load_state_dict(torch.load('./models/street_discriminator.txt'))
 
 ##### Train Generator
-game2street_generator_model = create_generator_model()
-street2game_generator_model = create_generator_model()
 
 trainCyclicGenerator(game2street_generator_model, street2game_generator_model, game_discriminator_model, torch.from_numpy(game_dataset))
-trainCyclicGenerator(street2game_generator_model, game2street_generator_model, game_discriminator_model, torch.from_numpy(street_dataset))
+trainCyclicGenerator(street2game_generator_model, game2street_generator_model, street_discriminator_model, torch.from_numpy(street_dataset))
 
 torch.save(game2street_generator_model.state_dict(), './models/game2street_generator.txt')
 torch.save(street2game_generator_model.state_dict(), './models/street2game_generator.txt')
@@ -225,24 +215,10 @@ torch.save(street2game_generator_model.state_dict(), './models/street2game_gener
 # 0: game dataset; taking game dataset as input; discriminator of game or generated
 # 1: street datasets; taking street dataset as input; discriminator of street or generated
 
+def convertResultAsImage(generated_img):
+    return Image.fromarray(((generated_img+1) * 128).detach().numpy().transpose().astype('uint8'))
 
-# training generator
-num_epochs = 3
-for epoch in range(num_epochs):
-    # TODO:
-    # - select real samples
-    # - generate fake samples
-    # - training descripminator
-    # d_loss = discriminator_model.train
-    for param in discriminator_model.parameters():
-        param.requires_grad = True
-
-    trainDiscriminator()
-
-    # TODO:
-    # - generae latent points
-    # - generate
-    # update generator via the discriminator's error
-    # g_loss = gan_model.train
-    for param in discriminator_model.parameters():
-        param.requires_grad = False
+def showImage(img):
+    fig,ax = plt.subplots()
+    ax.imshow(img)
+    plt.show()
