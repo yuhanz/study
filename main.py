@@ -147,8 +147,10 @@ street2game_generator_model = create_generator_model()
 
 # training discriminator
 def trainDiscriminator(discriminator_model, images, labels):
+    discriminator_model = discriminator_model.train()
     for param in discriminator_model.parameters():
         param.requires_grad = True
+
     images = images.to(device)
     labels = labels.to(device)
     optimizer = create_optimizer(discriminator_model)
@@ -166,6 +168,10 @@ def trainCyclicGenerator(forward_generator_model, back_generator_model, discrimi
     labels = torch.from_numpy(np.array([1] * len(images)).astype(np.float32))
     images = images.to(device)
     labels = labels.to(device)
+
+    discriminator_model = discriminator_model.eval()
+    forward_generator_model = forward_generator_model.train()
+    back_generator_model = back_generator_model.train()
     for param in discriminator_model.parameters():
         param.requires_grad = False
     for param in back_generator_model.parameters():
@@ -186,6 +192,8 @@ def trainCyclicGenerator(forward_generator_model, back_generator_model, discrimi
 
 ##### Train Discriminator
 
+game2street_generator_model = game2street_generator_model.eval()
+street2game_generator_model = street2game_generator_model.eval()
 generated_street_images = game2street_generator_model(torch.from_numpy(game_dataset))
 generated_game_images = street2game_generator_model(torch.from_numpy(street_dataset))
 
@@ -214,6 +222,30 @@ torch.save(street2game_generator_model.state_dict(), './models/street2game_gener
 
 # 0: game dataset; taking game dataset as input; discriminator of game or generated
 # 1: street datasets; taking street dataset as input; discriminator of street or generated
+
+def trainingLoop(times = 10):
+    for i in range(1, times):
+        print("---- round:", i)
+
+        print("- training street generator: ")
+        trainCyclicGenerator(game2street_generator_model, street2game_generator_model, game_discriminator_model, torch.from_numpy(game_dataset))
+        print("generating images...")
+        generated_street_images = game2street_generator_model(torch.from_numpy(game_dataset))
+        print("training street discriminator: ")
+        trainDiscriminator(street_discriminator_model, torch.from_numpy(np.concatenate([street_dataset, generated_street_images.detach().numpy()])), torch.from_numpy(np.array([1] * len(street_dataset) + [0] * len(generated_street_images)).astype(np.float32)))
+
+        print("- training game generator: ")
+        trainCyclicGenerator(street2game_generator_model, game2street_generator_model, street_discriminator_model, torch.from_numpy(street_dataset))
+        print("generating images...")
+        generated_game_images = street2game_generator_model(torch.from_numpy(street_dataset))
+        print("training game discriminator: ")
+        trainDiscriminator(game_discriminator_model, torch.from_numpy(np.concatenate([game_dataset, generated_game_images.detach().numpy()])), torch.from_numpy(np.array([1] * len(game_dataset) + [0] * len(generated_game_images)).astype(np.float32)))
+
+        torch.save(game2street_generator_model.state_dict(), './models/game2street_generator.txt')
+        torch.save(street2game_generator_model.state_dict(), './models/street2game_generator.txt')
+        torch.save(game_discriminator_model.state_dict(), './models/game_discriminator.txt')
+        torch.save(street_discriminator_model.state_dict(), './models/street_discriminator.txt')
+
 
 def convertResultAsImage(generated_img):
     return Image.fromarray(((generated_img+1) * 128).detach().numpy().transpose().astype('uint8'))
