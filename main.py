@@ -156,8 +156,9 @@ def trainDiscriminator(discriminator_model, images, labels):
     optimizer = create_optimizer(discriminator_model)
     num_epochs = 10
     for epoch in range(num_epochs):
-        outputs = discriminator_model(images)
-        loss = criterion(outputs, labels)
+        shuffle_order = get_shuffle_order_array(len(images))
+        outputs = discriminator_model(images[shuffle_order])
+        loss = criterion(outputs, labels[shuffle_order])
         print("Training discriminator epoch {} of {}".format(epoch, num_epochs))
         print("loss", loss)
         optimizer.zero_grad()
@@ -182,8 +183,9 @@ def trainCyclicGenerator(forward_generator_model, back_generator_model, discrimi
     optimizer = create_optimizer(cycle_gan_model)
     num_epochs = 10
     for epoch in range(num_epochs):
-        outputs = cycle_gan_model(images)
-        loss = criterion(outputs, labels)
+        shuffle_order = get_shuffle_order_array(len(images))
+        outputs = cycle_gan_model(images[shuffle_order])
+        loss = criterion(outputs, labels[shuffle_order])
         print("Training cycle_gan_model epoch {} of {}".format(epoch, num_epochs))
         print("loss", loss)
         optimizer.zero_grad()
@@ -214,6 +216,12 @@ trainCyclicGenerator(street2game_generator_model, game2street_generator_model, s
 
 torch.save(game2street_generator_model.state_dict(), './models/game2street_generator.txt')
 torch.save(street2game_generator_model.state_dict(), './models/street2game_generator.txt')
+
+
+def get_shuffle_order_array(length):
+    shuffle_order = list(range(0,length))
+    np.random.shuffle(shuffle_order)
+    return shuffle_order
 
 ## To load the model
 # game2street_generator_model.load_state_dict(torch.load('./models/game2street_generator.txt'))
