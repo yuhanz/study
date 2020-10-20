@@ -164,6 +164,10 @@ def trainDiscriminator(discriminator_model, images, labels):
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
+        if loss.detach().numpy() < 10**-10:
+            print('stop training early as the loss is really small')
+            break
+
 
 def trainCyclicGenerator(forward_generator_model, back_generator_model, discriminator_model, images):
     labels = torch.from_numpy(np.array([1] * len(images)).astype(np.float32))
@@ -176,12 +180,12 @@ def trainCyclicGenerator(forward_generator_model, back_generator_model, discrimi
     for param in discriminator_model.parameters():
         param.requires_grad = False
     for param in back_generator_model.parameters():
-        param.requires_grad = True
+        param.requires_grad = False
     for param in forward_generator_model.parameters():
         param.requires_grad = True
     cycle_gan_model = nn.Sequential(forward_generator_model, back_generator_model, discriminator_model)
     optimizer = create_optimizer(cycle_gan_model)
-    num_epochs = 10
+    num_epochs = 5
     for epoch in range(num_epochs):
         shuffle_order = get_shuffle_order_array(len(images))
         outputs = cycle_gan_model(images[shuffle_order])
@@ -191,6 +195,36 @@ def trainCyclicGenerator(forward_generator_model, back_generator_model, discrimi
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
+        if loss.detach().numpy() < 10**-10:
+            print('stop training early as the loss is really small')
+            break
+
+def trainGenerator(generator_model, discriminator_model, images):
+    labels = torch.from_numpy(np.array([1] * len(images)).astype(np.float32))
+    images = images.to(device)
+    labels = labels.to(device)
+    discriminator_model = discriminator_model.eval()
+    generator_model = generator_model.train()
+    for param in discriminator_model.parameters():
+        param.requires_grad = False
+    for param in generator_model.parameters():
+        param.requires_grad = True
+    gan_model = nn.Sequential(generator_model, discriminator_model)
+    optimizer = create_optimizer(gan_model)
+    num_epochs = 5
+    for epoch in range(num_epochs):
+        shuffle_order = get_shuffle_order_array(len(images))
+        outputs = gan_model(images[shuffle_order])
+        loss = criterion(outputs, labels[shuffle_order])
+        print("Training gan_model epoch {} of {}".format(epoch, num_epochs))
+        print("loss", loss)
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+        if loss.detach().numpy() < 10**-10:
+            print('stop training early as the loss is really small')
+            break
+
 
 ##### Train Discriminator
 
@@ -236,6 +270,7 @@ def trainingLoop(times = 10):
         print("---- round:", i)
 
         print("- training street generator: ")
+        trainGenerator(street2game_generator_model, game_discriminator_model, torch.from_numpy(street_dataset))
         trainCyclicGenerator(game2street_generator_model, street2game_generator_model, game_discriminator_model, torch.from_numpy(game_dataset))
         print("generating images...")
         generated_street_images = game2street_generator_model(torch.from_numpy(game_dataset))
@@ -243,6 +278,7 @@ def trainingLoop(times = 10):
         trainDiscriminator(street_discriminator_model, torch.from_numpy(np.concatenate([street_dataset, generated_street_images.detach().numpy()])), torch.from_numpy(np.array([1] * len(street_dataset) + [0] * len(generated_street_images)).astype(np.float32)))
 
         print("- training game generator: ")
+        trainGenerator(game2street_generator_model, street_discriminator_model, torch.from_numpy(game_dataset))
         trainCyclicGenerator(street2game_generator_model, game2street_generator_model, street_discriminator_model, torch.from_numpy(street_dataset))
         print("generating images...")
         generated_game_images = street2game_generator_model(torch.from_numpy(street_dataset))
