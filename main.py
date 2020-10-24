@@ -232,6 +232,7 @@ def trainCyclicGeneratorTogether(forward_generator_model, back_generator_model, 
     images = images.to(device)
 
     discriminator_model = discriminator_model.eval()
+    discriminator_model_first_step = discriminator_model_first_step.eval()
     forward_generator_model = forward_generator_model.train()
     back_generator_model = back_generator_model.train()
     for param in discriminator_model.parameters():
