@@ -104,10 +104,10 @@ def create_generator_model():
 
 
 # discriminator loss
-def create_optimizer(model):
-    # learning_rate = 0.0002
-    learning_rate = 0.00005
+def create_optimizer(model, override_learning_rate = None):
+    learning_rate = override_learning_rate or 0.0002
     return torch.optim.Adam(model.parameters(), lr=learning_rate, betas=(0.5, 0.999))
+
 
 # learning_rate = 0.0002
 # optimizer = torch.optim.Adam(discriminator_model.parameters(), lr=learning_rate, betas=(0.5, 0.999))
@@ -175,32 +175,43 @@ def trainDiscriminator(discriminator_model, realImages, fakeImages):
             break
 
 
-def trainCyclicGenerator(forward_generator_model, back_generator_model, discriminator_model, images):
+def trainCyclicGeneratorTogether(forward_generator_model, back_generator_model, discriminator_model, discriminator_model_first_step, images, override_learning_rate = None):
+    lambda_a = 2.        # multiplier on forward generator
+    lambda_b = 10.       # multiplier on cycle generator
+
+    s = (lambda_a + lambda_b)
+    lambda_a = lambda_a / s
+    lambda_b = lambda_b / s
+
     images = images.to(device)
 
     discriminator_model = discriminator_model.eval()
+    discriminator_model_first_step = discriminator_model_first_step.eval()
     forward_generator_model = forward_generator_model.train()
-    back_generator_model = back_generator_model.eval()
+    back_generator_model = back_generator_model.train()
     for param in discriminator_model.parameters():
         param.requires_grad = False
-    for param in back_generator_model.parameters():
+    for param in discriminator_model_first_step.parameters():
         param.requires_grad = False
+    for param in back_generator_model.parameters():
+        param.requires_grad = True
     for param in forward_generator_model.parameters():
         param.requires_grad = True
     cycle_gan_model = nn.Sequential(forward_generator_model, back_generator_model, discriminator_model)
-    optimizer = create_optimizer(cycle_gan_model)
-    num_epochs = 5
+    optimizer = create_optimizer(cycle_gan_model, override_learning_rate)
+    gan_model = nn.Sequential(forward_generator_model, discriminator_model_first_step)
+    num_epochs = 20
     for epoch in range(num_epochs):
-        outputs = cycle_gan_model(images)
-        loss = -torch.mean(outputs)
+        outputs1 = gan_model(images)
+        outputs2 = cycle_gan_model(images)
+        loss1 = -torch.mean(outputs1)
+        loss2 = -torch.mean(outputs2)
+        loss = loss1 * lambda_a + loss2 * lambda_b
         print("Training cycle_gan_model epoch {} of {}".format(epoch, num_epochs))
         print("loss", loss)
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-        if loss.detach().numpy() < 10**-10:
-            print('stop training early as the loss is really small')
-            break
 
 def trainGenerator(generator_model, discriminator_model, images):
     images = images.to(device)
@@ -225,7 +236,7 @@ def trainGenerator(generator_model, discriminator_model, images):
             print('stop training early as the loss is really small')
             break
 
-def trainCyclicGeneratorTogether(forward_generator_model, back_generator_model, discriminator_model, discriminator_model_first_step, images):
+def trainCyclicGeneratorTogether(forward_generator_model, back_generator_model, discriminator_model, discriminator_model_first_step, images, override_learning_rate = None):
     lambda_a = 3        # multiplier on forward generator
     lambda_b = 10       # multiplier on cycle generator
 
@@ -244,7 +255,7 @@ def trainCyclicGeneratorTogether(forward_generator_model, back_generator_model, 
     for param in forward_generator_model.parameters():
         param.requires_grad = True
     cycle_gan_model = nn.Sequential(forward_generator_model, back_generator_model, discriminator_model)
-    optimizer = create_optimizer(cycle_gan_model)
+    optimizer = create_optimizer(cycle_gan_model, override_learning_rate)
     gan_model = nn.Sequential(forward_generator_model, discriminator_model_first_step)
     num_epochs = 10
     for epoch in range(num_epochs):
@@ -308,7 +319,8 @@ def trainingLoop(times = 10):
         print("- training street generator: ")
         # trainGenerator(street2game_generator_model, game_discriminator_model, torch.from_numpy(street_dataset))
         # trainCyclicGenerator(game2street_generator_model, street2game_generator_model, game_discriminator_model, torch.from_numpy(game_dataset))
-        trainCyclicGeneratorTogether(game2street_generator_model, street2game_generator_model, game_discriminator_model, street_discriminator_model, torch.from_numpy(game_dataset))
+        override_learning_rate = 0.0008
+        trainCyclicGeneratorTogether(game2street_generator_model, street2game_generator_model, game_discriminator_model, street_discriminator_model, torch.from_numpy(game_dataset), override_learning_rate)
         print("generating images...")
         game2street_generator_model = game2street_generator_model.eval()
         generated_street_images = game2street_generator_model(torch.from_numpy(game_dataset).to(device))
@@ -318,7 +330,8 @@ def trainingLoop(times = 10):
         print("- training game generator: ")
         # trainGenerator(game2street_generator_model, street_discriminator_model, torch.from_numpy(game_dataset))
         #trainCyclicGenerator(street2game_generator_model, game2street_generator_model, street_discriminator_model, torch.from_numpy(street_dataset))
-        trainCyclicGeneratorTogether(street2game_generator_model, game2street_generator_model, street_discriminator_model, game_discriminator_model, torch.from_numpy(street_dataset))
+        override_learning_rate = 0.0008
+        trainCyclicGeneratorTogether(street2game_generator_model, game2street_generator_model, street_discriminator_model, game_discriminator_model, torch.from_numpy(street_dataset), override_learning_rate)
         print("generating images...")
         street2game_generator_model = street2game_generator_model.eval()
         generated_game_images = street2game_generator_model(torch.from_numpy(street_dataset).to(device))
