@@ -17,6 +17,13 @@ def conv3x3transpose(in_channels, out_channels, stride=1, padding=1):
     # tensorflow: padding = 'same'
     return nn.ConvTranspose2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=padding, bias=False)
 
+def createResnetBlock():
+  return nn.Sequential(\
+    conv3x3(64, 64, (1,1)), \
+    nn.InstanceNorm2d(64), \
+    nn.ReLU(True), \
+    conv3x3(64, 64, (1,1)), \
+    nn.InstanceNorm2d(64))
 
 class View(nn.Module):
     def __init__(self, shape):
@@ -32,6 +39,13 @@ class Narrow(nn.Module):
     def forward(self, x):
         (num_records, channels, w, h) = x.shape
         return x.narrow(2,0,w-1).narrow(3,0,h-1)
+
+class Accumulate(nn.Module):
+    def __init__(self, model):
+        super().__init__()
+        self.model = model
+    def forward(self, x):
+        return x + self.model(x)
 
 
 # discriminator model
@@ -55,6 +69,7 @@ def create_discriminator_model():
 # test input:
 #input = torch.from_numpy(np.random.rand(1,3,160,160).astype(np.float32))
 
+
 # generator model
 def create_generator_model():
     return nn.Sequential(\
@@ -70,12 +85,7 @@ def create_generator_model():
         conv3x3(64, 64, (2,2)), \
         nn.BatchNorm2d(64), \
         nn.LeakyReLU(0.2), \
-        conv3x3(64, 1, (1,1)), \
-        nn.Flatten(), \
-        nn.Linear(100, 64*10*10), \
-        nn.BatchNorm1d(64*10*10), \
-        nn.LeakyReLU(0.2), \
-        View((64,10,10)), \
+        nn.Sequential(*[Accumulate(createResnetBlock()) for i in range(0,9)]), \
         conv3x3transpose(64,64, (2,2), 1), \
         nn.BatchNorm2d(64), \
         nn.LeakyReLU(0.2), \
@@ -91,7 +101,6 @@ def create_generator_model():
         conv3x3(64, 3, 1, 2), \
         Narrow(1), \
         nn.Tanh())
-    # result shape: 33x33
 
 # test input:
 #input = torch.from_numpy(np.random.rand(20,100).astype(np.float32))
