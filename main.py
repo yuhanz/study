@@ -9,20 +9,20 @@ import matplotlib.pyplot as plt
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-def conv3x3(in_channels, out_channels, stride=1, padding=1):
+def conv3x3(in_channels, out_channels, stride=1, padding=1, bias=False):
     # tensorflow: padding = 'same'
-    return nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=padding, bias=False)
+    return nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=padding, bias=bias)
 
-def conv3x3transpose(in_channels, out_channels, stride=1, padding=1):
+def conv3x3transpose(in_channels, out_channels, stride=1, padding=1, bias=False):
     # tensorflow: padding = 'same'
-    return nn.ConvTranspose2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=padding, bias=False)
+    return nn.ConvTranspose2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=padding, bias=bias)
 
 def createResnetBlock():
   return nn.Sequential(\
-    conv3x3(64, 64, (1,1)), \
+    conv3x3(64, 64, (1,1), bias=True), \
     nn.InstanceNorm2d(64), \
     nn.ReLU(True), \
-    conv3x3(64, 64, (1,1)), \
+    conv3x3(64, 64, (1,1), bias=True), \
     nn.InstanceNorm2d(64))
 
 class View(nn.Module):
