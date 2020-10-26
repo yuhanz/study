@@ -17,13 +17,13 @@ def conv3x3transpose(in_channels, out_channels, stride=1, padding=1, bias=False)
     # tensorflow: padding = 'same'
     return nn.ConvTranspose2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=padding, bias=bias)
 
-def createResnetBlock():
+def createResnetBlock(dim):
   return nn.Sequential(\
-    conv3x3(64, 64, (1,1), bias=True), \
-    nn.InstanceNorm2d(64), \
+    conv3x3(dim, dim, (1,1), bias=True), \
+    nn.InstanceNorm2d(dim), \
     nn.ReLU(True), \
-    conv3x3(64, 64, (1,1), bias=True), \
-    nn.InstanceNorm2d(64))
+    conv3x3(dim, dim, (1,1), bias=True), \
+    nn.InstanceNorm2d(dim))
 
 class View(nn.Module):
     def __init__(self, shape):
@@ -54,17 +54,14 @@ def create_discriminator_model():
         conv3x3(3, 64, (2,2)), \
         nn.BatchNorm2d(64), \
         nn.LeakyReLU(0.2), \
-        conv3x3(64, 64, (2,2)), \
-        nn.BatchNorm2d(64), \
+        conv3x3(64, 128, (2,2)), \
+        nn.BatchNorm2d(128), \
         nn.LeakyReLU(0.2), \
-        conv3x3(64, 64, (2,2)), \
-        nn.BatchNorm2d(64), \
-        nn.LeakyReLU(0.2), \
-        conv3x3(64, 64, (2,2)), \
-        nn.BatchNorm2d(64), \
+        conv3x3(128, 256, (2,2)), \
+        nn.BatchNorm2d(256), \
         nn.LeakyReLU(0.2), \
         nn.Flatten(), \
-        nn.Linear(64 * 10 * 10, 1))
+        nn.Linear(256 * 20 * 20, 1))
 
 # test input:
 #input = torch.from_numpy(np.random.rand(1,3,160,160).astype(np.float32))
@@ -73,29 +70,20 @@ def create_discriminator_model():
 # generator model
 def create_generator_model():
     return nn.Sequential(\
-        conv3x3(3, 64, (2,2)), \
+        nn.Conv2d(3, 64, kernel_size=7, padding=0, bias=False), \
         nn.BatchNorm2d(64), \
         nn.LeakyReLU(0.2), \
-        conv3x3(64, 64, (2,2)), \
-        nn.BatchNorm2d(64), \
+        conv3x3(64, 128, (2,2)), \
+        nn.BatchNorm2d(128), \
         nn.LeakyReLU(0.2), \
-        conv3x3(64, 64, (2,2)), \
-        nn.BatchNorm2d(64), \
+        conv3x3(128, 256, (2,2)), \
+        nn.BatchNorm2d(256), \
         nn.LeakyReLU(0.2), \
-        conv3x3(64, 64, (2,2)), \
-        nn.BatchNorm2d(64), \
+        nn.Sequential(*[Accumulate(createResnetBlock(256)) for i in range(0,9)]), \
+        conv3x3transpose(256, 128, (2,2), padding=0), \
+        nn.BatchNorm2d(128), \
         nn.LeakyReLU(0.2), \
-        nn.Sequential(*[Accumulate(createResnetBlock()) for i in range(0,9)]), \
-        conv3x3transpose(64,64, (2,2), 1), \
-        nn.BatchNorm2d(64), \
-        nn.LeakyReLU(0.2), \
-        conv3x3transpose(64,64, (2,2), 0), \
-        nn.BatchNorm2d(64), \
-        nn.LeakyReLU(0.2), \
-        conv3x3transpose(64,64, (2,2), 0), \
-        nn.BatchNorm2d(64), \
-        nn.LeakyReLU(0.2), \
-        conv3x3transpose(64,64, (2,2), 0), \
+        conv3x3transpose(128,64, (2,2), padding=0), \
         nn.BatchNorm2d(64), \
         nn.LeakyReLU(0.2), \
         conv3x3(64, 3, 1, 2), \
