@@ -115,9 +115,8 @@ def create_optimizer(model, override_learning_rate = None):
     return torch.optim.Adam(model.parameters(), lr=learning_rate, betas=(0.5, 0.999))
 
 # discriminator loss
-def create_optimizer_from_multiple_models(models, override_learning_rate = None):
-    learning_rate = override_learning_rate or 0.0002
-    return torch.optim.Adam(itertools.chain(*map(lambda m: m.parameters(), models)), lr=learning_rate, betas=(0.5, 0.999))
+def create_optimizer_from_parameters(parameters, learning_rate = 0.0002):
+    return torch.optim.Adam(parameters, lr=learning_rate, betas=(0.5, 0.999))
 
 
 # learning_rate = 0.0002
@@ -162,7 +161,7 @@ street2game_generator_model.to(device)
 
 
 # training discriminator
-def trainDiscriminator(discriminator_model, realImages, fakeImages):
+def trainDiscriminator(optimizer, discriminator_model, realImages, fakeImages):
     discriminator_model = discriminator_model.train()
     for param in discriminator_model.parameters():
         param.requires_grad = True
@@ -170,7 +169,6 @@ def trainDiscriminator(discriminator_model, realImages, fakeImages):
 
     realImages = realImages.to(device)
     fakeImages = fakeImages.to(device)
-    optimizer = create_optimizer(discriminator_model)
     num_epochs = 10
     for epoch in range(num_epochs):
         outputsReal = discriminator_model(realImages)
@@ -187,30 +185,53 @@ def set_model_for_training(model):
     model.train()
     for param in model.parameters():
         param.requires_grad = True
-    return True
 
 def set_model_for_eval(model):
     model.eval()
     for param in model.parameters():
         param.requires_grad = False
-    return True
 
 
 def get_generator_loss(generator_A2B, generator_B2A, discriminator_A, discriminator_B, images_A, images_B, lambda_a=10, lambda_b=10):
-    map(lambda m: set_model_for_training(m), [generator_A2B, generator_B2A])
-    map(lambda m: set_model_for_eval(m), [discriminator_A, discriminator_B])
+    set_model_for_training(generator_A2B)
+    set_model_for_training(generator_B2A)
+    set_model_for_eval(discriminator_A)
+    set_model_for_eval(discriminator_B)
 
-    cycle_A2A = nn.Sequential(generator_A2B, generator_B2A, discriminator_A) * lambda_a
-    cycle_B2B = nn.Sequential(generator_B2A, generator_A2B, discriminator_B) * lambda_b
-    gan_A2B = nn.Sequential(generator_A2B, discriminator_B)
-    gan_B2A = nn.Sequential(generator_B2A, discriminator_A)
+    generated_B = generator_A2B(images_A)
+    loss_gan_b = - torch.mean(discriminator_B(generated_B))
+    backward_a = nn.Sequential(generator_B2A, discriminator_A)
+    loss_cycle_a = - torch.mean(backward_a(generated_B))
 
-    return sum(map(lambda r: -torch.mean(r), [cycle_A2A(images_A), cycle_B2B(images_B), gan_B2A(images_B) + gan_B2A(images_A)]))
+    loss = loss_gan_b
+    loss = loss + loss_cycle_a * lambda_a
+
+    del generated_B, loss_gan_b, backward_a, loss_cycle_a
+
+    generated_A = generator_B2A(images_B)
+    loss_gan_a = - torch.mean(discriminator_A(generated_A))
+    backward_b = nn.Sequential(generator_A2B, discriminator_B)
+    loss_cycle_b = - torch.mean(backward_b(generated_A))
+
+    loss = loss_gan_a
+    loss = loss + loss_cycle_b * lambda_b
+
+    del generated_A, loss_gan_a, backward_b, loss_cycle_b
+
+    # cycle_A2A = nn.Sequential(generator_A2B, generator_B2A, discriminator_A)
+    # cycle_B2B = nn.Sequential(generator_B2A, generator_A2B, discriminator_B)
+    # gan_A2B = nn.Sequential(generator_A2B, discriminator_B)
+    # gan_B2A = nn.Sequential(generator_B2A, discriminator_A)
+
+    # loss = - torch.mean(cycle_A2A(images_A)) * lambda_a
+    # loss = loss - torch.mean(cycle_B2B(images_B)) * lambda_b
+    # loss = loss - torch.mean(gan_B2A(images_B))
+    # loss = loss - torch.mean(gan_A2B(images_A))
+    return loss
 
 
-def trainCyclicGeneratorTogether(generator_A2B, generator_B2A, discriminator_A, discriminator_B, images_A, images_B, lambda_a=10, lambda_b=10, override_learning_rate = None):
-    optimizer = create_optimizer_from_multiple_models([generator_A2B, generator_B2A], override_learning_rate)
 
+def trainCyclicGeneratorTogether(optimizer, generator_A2B, generator_B2A, discriminator_A, discriminator_B, images_A, images_B, lambda_a=10, lambda_b=10, override_learning_rate = None):
     loss = get_generator_loss(generator_A2B, generator_B2A, discriminator_A, discriminator_B, images_A, images_B, lambda_a, lambda_b)
     print("Training generator epoch {} of {}".format(epoch, num_epochs))
     print("loss", loss)
@@ -232,8 +253,12 @@ def get_shuffle_order_array(length):
 # A: game dataset; taking game dataset as input; discriminator of game or generated
 # B: street datasets; taking street dataset as input; discriminator of street or generated
 
+generator_optimizer = create_optimizer_from_parameters(itertools.chain(game2street_generator_model.getParameters(), street2game_generator_model.getParameters()))
+discriminator_game_optimizer = create_optimizer(game_discriminator_model)
+discriminator_street_optimizer = create_optimizer(street_discriminator_model)
+
 def trainingLoop(times = 10):
-rounds = 121
+    rounds = 121
     for i in range(1, rounds + 1):
       print("---- round:", i)
 
@@ -241,7 +266,7 @@ rounds = 121
 
       print("- training generators: ")
       override_learning_rate = 0.0002
-      trainCyclicGeneratorTogether(game2street_generator_model, street2game_generator_model, game_discriminator_model, street_discriminator_model, game_dataset_at_device, street_dataset_at_device, override_learning_rate=override_learning_rate)
+      trainCyclicGeneratorTogether(generator_optimizer, game2street_generator_model, street2game_generator_model, game_discriminator_model, street_discriminator_model, game_dataset_at_device, street_dataset_at_device, override_learning_rate=override_learning_rate)
 
       print("- generating images...")
       set_model_for_eval(game2street_generator_model)
@@ -250,11 +275,11 @@ rounds = 121
       generated_game_images = street2game_generator_model(street_dataset_at_device)
 
       print("- training street discriminator: ")
-      trainDiscriminator(street_discriminator_model, street_dataset_at_device, generated_street_images)
+      trainDiscriminator(discriminator_street_optimizer, street_discriminator_model, street_dataset_at_device, generated_street_images)
       del generated_street_images
 
       print("training game discriminator: ")
-      trainDiscriminator(game_discriminator_model, game_dataset_at_device, generated_game_images)
+      trainDiscriminator(discriminator_game_optimizer, game_discriminator_model, game_dataset_at_device, generated_game_images)
       del generated_game_images
 
       hoursPerRun = (time.time() - startTime) / 3600.0
