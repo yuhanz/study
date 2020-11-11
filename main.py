@@ -122,7 +122,8 @@ def create_optimizer_from_parameters(parameters, learning_rate = 0.0002):
 # learning_rate = 0.0002
 # optimizer = torch.optim.Adam(discriminator_model.parameters(), lr=learning_rate, betas=(0.5, 0.999))
 # criterion = nn.CrossEntropyLoss()
-criterion = nn.BCELoss()
+#criterion = nn.BCELoss()
+criterion = nn.BCEWithLogitsLoss()
 
 
 # data loader
@@ -146,6 +147,10 @@ for index, (image, label) in enumerate(image_dataset):
         game_dataset = game_dataset + [np.asarray(image).transpose().astype(np.float32) / 128 - 1]
     else:
         street_dataset = street_dataset + [np.asarray(image).transpose().astype(np.float32) / 128 - 1]
+
+num_images_for_game = len(game_dataset)
+num_images_for_street = len(street_dataset)
+
 street_dataset = np.array(street_dataset)
 game_dataset = np.array(game_dataset)
 
@@ -161,11 +166,14 @@ street2game_generator_model.to(device)
 
 
 # training discriminator
-def trainDiscriminator(optimizer, discriminator_model, realImages, fakeImages):
+def trainDiscriminator(optimizer, discriminator_model, realImages, fakeImages, num_reals, num_fakes):
     discriminator_model = discriminator_model.train()
     for param in discriminator_model.parameters():
         param.requires_grad = True
-        param.data.clamp_(-0.01, 0.01)
+        # param.data.clamp_(-0.01, 0.1)
+
+    image_labels_real = torch.from_numpy(np.array([1] * num_reals).astype(np.float32)).to(device)
+    image_labels_fake = torch.from_numpy(np.array([0] * num_fakes).astype(np.float32)).to(device)
 
     realImages = realImages.to(device)
     fakeImages = fakeImages.to(device)
@@ -173,7 +181,9 @@ def trainDiscriminator(optimizer, discriminator_model, realImages, fakeImages):
     for epoch in range(num_epochs):
         outputsReal = discriminator_model(realImages)
         outputsFake = discriminator_model(fakeImages)
-        loss = -(torch.mean(outputsReal) - torch.mean(outputsFake))
+        loss_real = criterion(outputsReal, image_labels_real)
+        loss_fake = criterion(outputsFake, image_labels_fake)
+        loss = loss_real + loss_fake
         print("Training discriminator epoch {} of {}".format(epoch, num_epochs))
         print("loss", loss)
         optimizer.zero_grad()
@@ -192,48 +202,40 @@ def set_model_for_eval(model):
         param.requires_grad = False
 
 
-def get_generator_loss(generator_A2B, generator_B2A, discriminator_A, discriminator_B, images_A, images_B, lambda_a=10, lambda_b=10):
+def get_generator_loss(generator_A2B, generator_B2A, discriminator_A, discriminator_B, images_A, images_B, num_images_A, num_images_B, lambda_a=10, lambda_b=10):
     set_model_for_training(generator_A2B)
     set_model_for_training(generator_B2A)
     set_model_for_eval(discriminator_A)
     set_model_for_eval(discriminator_B)
 
+    image_labels_A = torch.from_numpy(np.array([[1]] * num_images_A).astype(np.float32)).to(device)
+
     generated_B = generator_A2B(images_A)
-    loss_gan_b = - torch.mean(discriminator_B(generated_B))
-    backward_a = nn.Sequential(generator_B2A, discriminator_A)
-    loss_cycle_a = - torch.mean(backward_a(generated_B))
+    loss_gan_b = criterion(discriminator_B(generated_B), image_labels_A)
+    cycle_images_A = generator_B2A(generated_B)
+    loss_cycle_a = torch.nn.L1Loss()(cycle_images_A, images_A)
 
     loss = loss_gan_b
     loss = loss + loss_cycle_a * lambda_a
 
-    del generated_B, loss_gan_b, backward_a, loss_cycle_a
+    del generated_B, loss_gan_b, loss_cycle_a, cycle_images_A, image_labels_A
+
+    image_labels_B = torch.from_numpy(np.array([[1]] * num_images_B).astype(np.float32)).to(device)
 
     generated_A = generator_B2A(images_B)
-    loss_gan_a = - torch.mean(discriminator_A(generated_A))
-    backward_b = nn.Sequential(generator_A2B, discriminator_B)
-    loss_cycle_b = - torch.mean(backward_b(generated_A))
+    loss_gan_a = criterion(discriminator_A(generated_A), image_labels_B)
+    cycle_images_B = generator_A2B(generated_A)
+    loss_cycle_b = torch.nn.L1Loss()(cycle_images_B, images_B)
 
-    loss = loss_gan_a
+    loss = loss + loss_gan_a
     loss = loss + loss_cycle_b * lambda_b
 
-    del generated_A, loss_gan_a, backward_b, loss_cycle_b
+    del generated_A, loss_gan_a, loss_cycle_b, cycle_images_B, image_labels_B
 
-    # cycle_A2A = nn.Sequential(generator_A2B, generator_B2A, discriminator_A)
-    # cycle_B2B = nn.Sequential(generator_B2A, generator_A2B, discriminator_B)
-    # gan_A2B = nn.Sequential(generator_A2B, discriminator_B)
-    # gan_B2A = nn.Sequential(generator_B2A, discriminator_A)
-
-    # loss = - torch.mean(cycle_A2A(images_A)) * lambda_a
-    # loss = loss - torch.mean(cycle_B2B(images_B)) * lambda_b
-    # loss = loss - torch.mean(gan_B2A(images_B))
-    # loss = loss - torch.mean(gan_A2B(images_A))
     return loss
 
-
-
-def trainCyclicGeneratorTogether(optimizer, generator_A2B, generator_B2A, discriminator_A, discriminator_B, images_A, images_B, lambda_a=10, lambda_b=10, override_learning_rate = None):
-    loss = get_generator_loss(generator_A2B, generator_B2A, discriminator_A, discriminator_B, images_A, images_B, lambda_a, lambda_b)
-    print("Training generator epoch {} of {}".format(epoch, num_epochs))
+def trainCyclicGeneratorTogether(optimizer, generator_A2B, generator_B2A, discriminator_A, discriminator_B, images_A, images_B, num_images_A, num_images_B, lambda_a=10, lambda_b=10, override_learning_rate = None):
+    loss = get_generator_loss(generator_A2B, generator_B2A, discriminator_A, discriminator_B, images_A, images_B, num_images_A, num_images_B, lambda_a=lambda_a, lambda_b=lambda_b)
     print("loss", loss)
     optimizer.zero_grad()
     loss.backward()
