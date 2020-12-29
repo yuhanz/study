@@ -239,7 +239,7 @@ def compute_gradient_penalty(discriminator, realImages, fakeImages):
   np.autograd.grad(
       outputs = outputs,
       inputs = interpolated,
-      grad_outpus = grad_outputs
+      grad_outpus = grad_outputs,
       only_inputs = True
   )
   gradients = gradients[0].view(realImages.size(0), -1)
@@ -487,7 +487,7 @@ def compute_gradient_penalty(discriminator, realImages, fakeImages):
   np.autograd.grad(
       outputs = outputs,
       inputs = interpolated,
-      grad_outpus = grad_outputs
+      grad_outpus = grad_outputs,
       only_inputs = True
   )
   gradients = gradients[0].view(realImages.size(0), -1)
@@ -508,6 +508,9 @@ num_images_for_street = len(street_dataset)
 
 street_dataset = np.array(street_dataset)
 game_dataset = np.array(game_dataset)
+
+game_dataset_at_device = torch.from_numpy(game_dataset).to(device)
+street_dataset_at_device = torch.from_numpy(street_dataset).to(device)
 
 game_discriminator_model = create_discriminator_model()
 street_discriminator_model = create_discriminator_model()
@@ -537,9 +540,10 @@ generator_scheduler = torch.optim.lr_scheduler.OneCycleLR(generator_optimizer, m
 
 import time
 import datetime
-from google.colab import drive
-drive.mount('/content/gdrive')
-save_path = '/content/gdrive/My Drive/ML/study-cycle-gan/'
+# from google.colab import drive
+# drive.mount('/content/gdrive')
+# save_path = '/content/gdrive/My Drive/ML/study-cycle-gan/'
+save_path = '/tmp/ML/study-cycle-gan/'
 
 startTime = time.time()
 
@@ -547,7 +551,7 @@ rounds = 10
 for i in range(1, rounds + 1):
   print("---- round:", i)
 
-  !date
+  # !date
 
   print("- training generators: ")
   loss = trainCyclicGeneratorTogether(generator_optimizer, game2street_generator_model, street2game_generator_model, game_discriminator_model, street_discriminator_model, game_dataset_at_device, street_dataset_at_device, num_images_for_game, num_images_for_street)
@@ -586,7 +590,7 @@ for i in range(1, rounds + 1):
   del generated_game_images
 
 
-  !date
+  # !date
   minutesPerRun = (time.time() - startTime) / i / 60
   print("... Remaining minutes: ", (rounds - i) * minutesPerRun)
 
