@@ -1,5 +1,5 @@
-# throw a ball into a basket at a velocity
-#
+# Throw a ball into a basket at a velocity
+#  The ball is thrown from (0,0), and the basket is at (100, 10)
 import autograd.numpy as np
 from autograd import value_and_grad
 from scipy.optimize import minimize
