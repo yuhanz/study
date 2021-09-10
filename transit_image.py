@@ -12,15 +12,15 @@ from imageio import imread
 flag = imread('/Users/yzhang/Olympic_flag.png')
 target_location = (abs((flag - 255)).sum(axis=2) > 0) *255
 
-start_location = np.zeros([1280, 1920])
-start_location[0:640, :] = 255       # start with content at the top
+start_location = np.zeros([160, 240])
+start_location[:20, :] = 255       # start with content at the top
 
 
-steps = 20
+steps = 100
 time_per_step = 1  # how much time (seconds) each step represents
 # initial guess. minimize will adjust this value
-velocity_x = np.ones([1280, 1920])
-velocity_y = np.ones([1280, 1920])
+velocity_x = np.ones([160, 240])
+velocity_y = np.ones([160, 240])
 
 
 def update(velocity_x, velocity_y, location):
@@ -37,34 +37,43 @@ def update(velocity_x, velocity_y, location):
   new_location = new_location + update_y_negative
   return new_location
 
-def simulate(velocity_x, velocity_y, location, steps):
-  intermediat_locations = []
+def simulate(velocity_x, velocity_y, location, steps, collectIntermediate = False):
+  intermediate_locations = []
   for i in range(0,steps):
     location = update(velocity_x, velocity_y, location)
-    intermediat_locations.append(location)
-  return location, intermediat_locations
+    if(collectIntermediate):
+        intermediate_locations.append(location.copy())
+  return location, intermediate_locations
 
 def objective(params):
-  velocity_x = np.reshape(params[:1280*1920], [1280,1920])
-  velocity_y = np.reshape(params[1280*1920:], [1280,1920])
-  final_location, intermediat_locations = simulate(velocity_x, velocity_y, start_location, steps)
+  velocity_x = np.reshape(params[:160*240], [160,240])
+  velocity_y = np.reshape(params[160*240:], [160,240])
+  final_location, intermediate_locations = simulate(velocity_x, velocity_y, start_location, steps)
   return np.mean((final_location - target_location)**2)
 
 objective_and_grad = value_and_grad(objective)
 
 result = minimize(objective_and_grad, np.concatenate((velocity_x, velocity_y)), jac=True, method='CG')
 
-desired_velocity_x = result.x[:1280 * 1920].reshape(1280, 1920)
-desired_velocity_y = result.x[1280 * 1920:].reshape(1280, 1920)
+desired_velocity_x = result.x[:160 * 240].reshape(160, 240)
+desired_velocity_y = result.x[160 * 240:].reshape(160, 240)
 
-destination, intermediate_locations = simulate( desired_velocity_x, desired_velocity_y, start_location, steps)
+# to run the objective function with trained parameters
+objective_and_grad(np.concatenate((desired_velocity_x.reshape(160*240), desired_velocity_y.reshape(160*240))))
+
+destination, intermediate_locations = simulate( desired_velocity_x, desired_velocity_y, start_location, steps, collectIntermediate=True)
 
 print("result destination: ", destination)
 print("intermediate_locations: ", intermediate_locations)
 
-# plt.plot([start_location] + intermediate_locations)
-x = list(map(lambda v: v[0], ([start_location] + intermediate_locations)))
-y = list(map(lambda v: v[1], ([start_location] + intermediate_locations)))
+plt.imshow(destination)
+plt.show()
 
-plt.plot(x, y)
+plt.imshow(intermediate_locations[0])
+plt.show()
+plt.imshow(intermediate_locations[10])
+plt.show()
+plt.imshow(intermediate_locations[15])
+plt.show()
+plt.imshow(intermediate_locations[19])
 plt.show()
