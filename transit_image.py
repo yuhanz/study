@@ -16,25 +16,24 @@ start_location = np.zeros([160, 240])
 start_location[:20, :] = 255       # start with content at the top
 
 
-steps = 100
+steps = 200
 time_per_step = 1  # how much time (seconds) each step represents
 # initial guess. minimize will adjust this value
 velocity_x = np.ones([160, 240])
 velocity_y = np.ones([160, 240])
 
-
 def update(velocity_x, velocity_y, location):
-  new_location = location - velocity_x
-  new_location = new_location - velocity_y
-  new_location = new_location - np.sqrt(velocity_x **2 + velocity_y ** 2) / 2
-  update_x_positive = np.roll(velocity_x * (velocity_x > 0) + np.zeros(velocity_x.shape), 1)
-  update_x_negative = np.roll(velocity_x * (velocity_x < 0) + np.zeros(velocity_x.shape), -1)
-  update_y_positive = np.roll(velocity_y * (velocity_y > 0) + np.zeros(velocity_y.shape), 1, axis=0)
-  update_y_negative = np.roll(velocity_y * (velocity_y < 0) + np.zeros(velocity_y.shape), -1, axis=0)
-  new_location = new_location + update_x_positive
-  new_location = new_location + update_x_negative
-  new_location = new_location + update_y_positive
-  new_location = new_location + update_y_negative
+  vs = velocity_x + velocity_y
+  normalized_vx = velocity_x / vs
+  normalized_vy = velocity_y / vs
+  move_x = normalized_vx * location
+  move_y = normalized_vy * location
+  move_x_positive = np.roll(move_x * (move_x > 0) + np.zeros(move_x.shape), 1, axis=1)
+  move_x_negative = np.roll(move_x * (move_x < 0) + np.zeros(move_x.shape), -1, axis=1)
+  move_y_positive = np.roll(move_y * (move_y > 0) + np.zeros(move_y.shape), 1, axis=0)
+  move_y_negative = np.roll(move_y * (move_y < 0) + np.zeros(move_y.shape), -1, axis=0)
+  new_location = np.zeros(location.shape)
+  new_location = move_x_positive + move_x_negative + move_y_positive + move_y_negative
   return new_location
 
 def simulate(velocity_x, velocity_y, location, steps, collectIntermediate = False):
