@@ -13,28 +13,31 @@ flag = imread('/Users/yzhang/Olympic_flag.png')
 target_location = (abs((flag - 255)).sum(axis=2) > 0) *255
 
 start_location = np.zeros([160, 240])
-start_location[:20, :] = 255       # start with content at the top
+start_location[:30, :] = 255       # start with content at the top
 
 
 steps = 200
 time_per_step = 1  # how much time (seconds) each step represents
 # initial guess. minimize will adjust this value
-velocity_x = np.ones([160, 240])
-velocity_y = np.ones([160, 240])
+velocity_x = np.ones([160, 240]) * 255
+velocity_y = np.ones([160, 240]) * 255
 
 def update(velocity_x, velocity_y, location):
-  vs = velocity_x + velocity_y
-  normalized_vx = velocity_x / vs
-  normalized_vy = velocity_y / vs
-  move_x = normalized_vx * location
-  move_y = normalized_vy * location
+  vs = (np.abs(velocity_x) + np.abs(velocity_y))
+  vs_dividor = vs + ((vs == 0) + 0)   # to avoid dividing by 0, replace all 0 with 1
+  normalized_vx = velocity_x / vs_dividor
+  normalized_vy = velocity_y / vs_dividor
+  movable_matters = np.minimum(np.minimum(location, vs), 255)
+  move_x = normalized_vx * movable_matters
+  move_y = normalized_vy * movable_matters
   move_x_positive = np.roll(move_x * (move_x > 0) + np.zeros(move_x.shape), 1, axis=1)
   move_x_negative = np.roll(move_x * (move_x < 0) + np.zeros(move_x.shape), -1, axis=1)
   move_y_positive = np.roll(move_y * (move_y > 0) + np.zeros(move_y.shape), 1, axis=0)
   move_y_negative = np.roll(move_y * (move_y < 0) + np.zeros(move_y.shape), -1, axis=0)
   new_location = np.zeros(location.shape)
   new_location = move_x_positive + move_x_negative + move_y_positive + move_y_negative
-  return new_location
+  remaining = location - movable_matters
+  return new_location + remaining
 
 def simulate(velocity_x, velocity_y, location, steps, collectIntermediate = False):
   intermediate_locations = []
@@ -48,7 +51,8 @@ def objective(params):
   velocity_x = np.reshape(params[:160*240], [160,240])
   velocity_y = np.reshape(params[160*240:], [160,240])
   final_location, intermediate_locations = simulate(velocity_x, velocity_y, start_location, steps)
-  return np.mean((final_location - target_location)**2)
+  diff = (target_location - final_location)
+  return np.mean(diff**2 + (10* diff * (target_location > 0))**2 )
 
 objective_and_grad = value_and_grad(objective)
 
