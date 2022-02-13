@@ -12,7 +12,7 @@ import math
 
 
 # Create the environment and display the initial state
-env = gym.make('Pendulum-v0')
+env = gym.make('Pendulum-v1')
 observation = env.reset()
 firstframe = env.render(mode = 'rgb_array')
 fig,ax = plt.subplots()
