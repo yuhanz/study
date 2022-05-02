@@ -36,7 +36,7 @@
 
 		const renderer = new THREE.WebGLRenderer( { antialias: true } );
 		renderer.setSize( window.innerWidth, window.innerHeight );
-		renderer.setAnimationLoop( animation );
+		//renderer.setAnimationLoop( animation );
 		document.body.appendChild( renderer.domElement );
 
 		function animation( time ) {
@@ -79,6 +79,72 @@
 		// 	}
 		// );
 
+		function rayTrace() {
+			// const canvas = document.getElementsByTagName('canvas')[0]
+			// var ctx = canvas.getContext('2d');
+			// var canvasWidth = canvas.width;
+			// var canvasHeight = canvas.height
+			// var id = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
+			// var pixels = id.data;
+			var canvas = document.createElement("CANVAS");
+			canvasWidth = canvas.width = window.innerWidth
+			canvasHeight = canvas.height = window.innerHeight
+			var ctx = canvas.getContext("2d");
+			var id = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
+			var pixels = id.data;
+
+			for(var j=0;j<window.innerHeight;j++) {
+				for(var i=0;i<window.innerWidth;i++) {
+					const geometry = mesh.geometry
+
+					// Need to be between -1 and 1
+					const pointer = new THREE.Vector2();
+					pointer.x = -1 + (2*i/window.innerWidth)
+					pointer.y = -1 + (2*j/window.innerHeight)
+
+					const raycaster = new THREE.Raycaster()
+
+					raycaster.setFromCamera( pointer, camera );
+					const intersects = []
+					mesh.raycast(raycaster, intersects)
+
+					if(intersects.length > 0) {
+						// TODO: order the intersections to pick the planes facing the camera
+						const intersect = intersects[0]
+
+						const point = intersect.point
+						const faceNormal = intersect.face.normal
+
+						// TODO: get reflection direction
+						const rayDirection = point.clone().sub(camera.position).normalize()
+						const reflectedDirection = rayDirection.reflect(faceNormal)
+						const lightDirection = point.clone().sub(light.position).normalize()
+
+						const intensityEffect = reflectedDirection.dot(lightDirection)
+						console.log(i,j, intensityEffect)
+
+						// TODO:
+						// render the intensity to a canvas
+						var off = (j * id.width + i) * 4;
+						pixels[off] = Math.floor(255 * Math.abs(intensityEffect));
+						pixels[off + 1] = 0;
+						pixels[off + 2] = 0;
+						pixels[off + 3] = 255;
+					}
+
+				}
+			}
+
+			ctx.putImageData(id, 0, 0);
+			document.body.appendChild(canvas)
+		}
+
+		setTimeout(() => {
+		  rayTrace()
+		}, "1000")
+		// rayTrace()
+
 		</script>
+		<canvas id="myCanvas" width="200" height="100"></canvas>
 	</body>
 </html>
