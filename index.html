@@ -36,7 +36,7 @@
 
 		const renderer = new THREE.WebGLRenderer( { antialias: true } );
 		renderer.setSize( window.innerWidth, window.innerHeight );
-		//renderer.setAnimationLoop( animation );
+		renderer.setAnimationLoop( animation );
 		document.body.appendChild( renderer.domElement );
 
 		function animation( time ) {
@@ -45,12 +45,13 @@
 			mesh.rotation.y = time / 1000;
 
 			renderer.render( scene, camera );
+			rayTrace()
 
 		}
 
 
 		// animation
-		animation(9034102)
+		//animation(9034102)
 
 		// helper.update()
 
@@ -78,6 +79,7 @@
 		//
 		// 	}
 		// );
+		var previousCanvas = null
 
 		function rayTrace() {
 			// const canvas = document.getElementsByTagName('canvas')[0]
@@ -90,6 +92,8 @@
 			canvasWidth = canvas.width = window.innerWidth
 			canvasHeight = canvas.height = window.innerHeight
 			var ctx = canvas.getContext("2d");
+			ctx.fillStyle = "black";
+			ctx.fillRect(0, 0, canvas.width, canvas.height);
 			var id = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
 			var pixels = id.data;
 
@@ -100,7 +104,7 @@
 					// Need to be between -1 and 1
 					const pointer = new THREE.Vector2();
 					pointer.x = -1 + (2*i/window.innerWidth)
-					pointer.y = -1 + (2*j/window.innerHeight)
+					pointer.y = 1 + (2*j/window.innerHeight*(-1))
 
 					const raycaster = new THREE.Raycaster()
 
@@ -114,21 +118,25 @@
 
 						const point = intersect.point
 						const faceNormal = intersect.face.normal
+						// TODO: rotate faceNormal
 
-						// TODO: get reflection direction
-						const rayDirection = point.clone().sub(camera.position).normalize()
-						const reflectedDirection = rayDirection.reflect(faceNormal)
-						const lightDirection = point.clone().sub(light.position).normalize()
+						// Get reflection direction
+						const rayDirection = camera.position.clone().sub(point.clone()).normalize()
+						//const reflectedDirection = rayDirection.clone().reflect(faceNormal)
+						const reflectedDirection = rayDirection.applyAxisAngle(faceNormal, Math.PI)
+						const lightDirection = light.position.clone().sub(point.clone()).normalize()
+						// TODO: make light move with the camera
+
 
 						const intensityEffect = reflectedDirection.dot(lightDirection)
-						console.log(i,j, intensityEffect)
+						//console.log(i,j, intensityEffect)
 
-						// TODO:
 						// render the intensity to a canvas
 						var off = (j * id.width + i) * 4;
-						pixels[off] = Math.floor(255 * Math.abs(intensityEffect));
-						pixels[off + 1] = 0;
-						pixels[off + 2] = 0;
+						//pixels[off] = Math.floor(255 * Math.abs(intensityEffect));
+						pixels[off] = Math.floor(255 * Math.max(0, intensityEffect));
+						pixels[off + 1] = 50;
+						pixels[off + 2] = 50;
 						pixels[off + 3] = 255;
 					}
 
@@ -136,7 +144,11 @@
 			}
 
 			ctx.putImageData(id, 0, 0);
+			if(previousCanvas) {
+				document.body.removeChild(previousCanvas)
+			}
 			document.body.appendChild(canvas)
+			previousCanvas = canvas
 		}
 
 		setTimeout(() => {
