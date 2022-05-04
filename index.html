@@ -134,7 +134,7 @@
 						// render the intensity to a canvas
 						var off = (j * id.width + i) * 4;
 						//pixels[off] = Math.floor(255 * Math.abs(intensityEffect));
-						pixels[off] = Math.floor(255 * Math.max(0, intensityEffect));
+						pixels[off] = 50 + Math.floor(205 * Math.max(0, intensityEffect));
 						pixels[off + 1] = 50;
 						pixels[off + 2] = 50;
 						pixels[off + 3] = 255;
