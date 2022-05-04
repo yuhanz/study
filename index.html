@@ -117,7 +117,7 @@
 						const intersect = intersects[0]
 
 						const point = intersect.point
-						const faceNormal = intersect.face.normal
+						const faceNormal = intersect.face.normal.clone().applyMatrix4(mesh.matrix)
 						// TODO: rotate faceNormal
 
 						// Get reflection direction
